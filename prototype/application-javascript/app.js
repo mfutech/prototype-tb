@@ -24,6 +24,23 @@ app.use(express.urlencoded({
 
 app.set('view engine', 'ejs');
 
+// delete wallet on application start
+const fs = require('fs');
+const deleteFolderRecursive = function(folder) {
+  if (fs.existsSync(folder)) {
+    fs.readdirSync(folder).forEach((file, index) => {
+      const curPath = path.join(folder, file);
+      if (fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(folder);
+  }
+};
+deleteFolderRecursive("wallet");
+
 // Create a new gateway instance for interacting with the fabric network.
 // In a real application this would be done as the backend server session is setup for
 // a user that has been verified.
