@@ -194,3 +194,32 @@ exports.removeUser = async (caClient, wallet, username) => {
 		console.error(`Failed to list identities : ${error}`);
 	}
 };
+
+exports.getUser = async (caClient, wallet, username) => {
+	try {
+		// Must use an admin
+		const adminIdentity = await wallet.get(adminUserId);
+		if (!adminIdentity) {
+			console.log('An identity for the admin user does not exist in the wallet');
+			console.log('Enroll the admin user before retrying');
+			return;
+		}
+
+		// build a user object for authenticating with the CA
+		const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
+		const adminUser = await provider.getUserContext(adminIdentity, adminUserId);
+
+		const identityService = caClient.newIdentityService();
+		let response = await identityService.getOne(username, adminUser);
+
+		return {
+			username: username,
+			firstname: response.result.attrs.filter(a => a.name === 'firstname')[0].value,
+			lastname: response.result.attrs.filter(a => a.name === 'lastname')[0].value,
+			role: response.result.attrs.filter(a => a.name === 'role')[0].value
+		};
+	}
+	catch (error) {
+		console.error(`Failed to get identity : ${error}`);
+	}
+};

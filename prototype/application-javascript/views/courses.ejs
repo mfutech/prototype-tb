@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%- include('partials/head') %>
+</head>
+
+<body>
+    <%- include('partials/menu') %>
+
+    <div class="container">
+        <h1 class="py-5">Courses</h1>
+
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Acronym</th>
+                    <th scope="col">Year</th>
+                    <th scope="col">Teacher</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody class="table-striped">
+                <% for(var i = 0; i < courses.length; i++) { %>
+                <tr>
+                    <td>
+                        <a class="btn btn-link" href="/course-details/<%= courses[i].Key %>"><%= courses[i].Key %></a>
+                    </td>
+                    <td><%= courses[i].Record.Name %></td>
+                    <td><%= courses[i].Record.Acronym %></td>
+                    <td><%= courses[i].Record.Year %></td>
+                    <td><%= courses[i].Record.Teacher %></td>
+                    <td>
+                    <% if (courses[i].Record.Active) { %>
+                        <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/disable-course/<%= courses[i].Key %>');">Disable</button>
+                    <% } else { %>
+                        <button type="button" class="btn btn-outline-success float-right" onClick="loading(this, '/enable-course/<%= courses[i].Key %>');">Enable</button>
+                    <% } %>
+                    </td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+
+        <a class="btn btn-primary float-right mt-5" href="/add-course" role="button">Add course</a>
+    </div>
+    
+    <%- include('partials/script') %>
+</body>
+
+</html>

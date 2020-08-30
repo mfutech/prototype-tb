@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%- include('partials/head') %>
+</head>
+
+<body>
+    <%- include('partials/menu') %>
+
+    <div class="container mt-5">
+        <h1 class="py-5"><%= course.Name %></h1>
+
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">First name</th>
+                    <th scope="col">Last name</th>
+                    <th scope="col">Email</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody class="table-striped">
+                <% for(var i = 0; i < students.length; i++) { %>
+                <tr>
+                    <td><%= students[i].firstname %></td>
+                    <td><%= students[i].lastname %></td>
+                    <td><%= students[i].username %></td>
+                    <td>
+                        <button type="button" class="btn btn-outline-warning float-right"
+                            onClick="loading(this, '/unregister-student/<%= course.ID %>/<%= students[i].username %>');">Unregister</button>
+                    </td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+
+        <div class="float-right mt-5">
+            <form id="form" action="/register-student" method="POST" class="form-inline">
+                <input type="hidden" name="courseId" value="<%= course.ID %>"/>
+                <div class="form-group">
+                    <label for="username" class="sr-only">Username</label>
+                    <input type="email" class="form-control" id="username" name="username" placeholder="Email">
+                </div>
+                <button type="submit" class="btn btn-primary ml-3" onClick="loading(this);">Register student</button>
+            </form>
+        </div>
+    </div>
+
+    <%- include('partials/script') %>
+</body>
+
+</html>
