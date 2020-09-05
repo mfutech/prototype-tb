@@ -21,7 +21,14 @@ async function getAllIdentities(caClient, wallet, role) {
 
 		const identityService = caClient.newIdentityService();
 		let response = await identityService.getAll(adminUser);
-		return response.result.identities.filter(i => i.attrs.some(a => a.name === 'role' && a.value === role));
+		return response.result.identities
+			.filter(i => i.attrs.some(a => a.name === 'role' && a.value === role))
+			.map(i => ({
+					username: i.id,
+					firstname: i.attrs.filter(a => a.name === 'firstname')[0].value,
+					lastname: i.attrs.filter(a => a.name === 'lastname')[0].value,
+					role: i.attrs.filter(a => a.name === 'role')[0].value
+				}));
 	} catch (error) {
 		console.error(`Failed to list identities : ${error}`);
 	}

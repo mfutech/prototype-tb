@@ -9,8 +9,12 @@
     <%- include('partials/menu') %>
 
     <div class="container mt-5">
-        <h1 class="py-5"><%= course.Name %></h1>
+        <h1 class="pt-5"><%= course.Name %></h1>
 
+        <h2 class="pt-4">Teacher</h2>
+        <%= teacher.firstname %> <%= teacher.lastname %> (<%= teacher.username %>)
+
+        <h2 class="pt-4">Enrolled students</h2>
         <table class="table">
             <thead class="thead-dark">
                 <tr>

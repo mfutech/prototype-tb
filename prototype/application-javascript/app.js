@@ -216,8 +216,10 @@ app.get('/course-details/:courseId', async (req, res) => {
 			students.push(user);
 		}
 
+		let teacher = await getUser(caClient, wallet, course.Teacher);
+
 		// render view
-		res.render('course-details', { course: course, students: students });
+		res.render('course-details', { course: course, teacher: teacher, students: students });
 	}
 	catch (error) {
 		res.render('error', { error: error });
@@ -380,6 +382,42 @@ app.get('/delete-teacher/:teacherId', async (req, res) => {
 	}
 	catch (error) {
 		res.render('error', { error: error });
+	}
+})
+
+app.get('/add-course', async (req, res) => {
+	if (!req.isAuthenticated()) {
+		res.redirect('/login');
+		return;
+	}
+
+	// get teachers
+	const teachers = await listTeachers(caClient, wallet);
+
+	res.render('add-course', { teachers: teachers });
+})
+
+app.post('/add-course', async (req, res) => {
+	if (!req.isAuthenticated()) {
+		res.redirect('/login');
+		return;
+	}
+	
+	try {
+		// get smart contract
+		const contract = await getContract(req.user.username);
+
+		// regsiter student
+		await contract.submitTransaction('AddCourse', req.body.acronym, req.body.name, req.body.year, req.body.teacher);
+
+		// redirect
+		res.redirect('/courses');
+	}
+	catch (error) {
+		res.render('error', { error: error });
+	}
+	finally {
+		gateway.disconnect();
 	}
 })
 

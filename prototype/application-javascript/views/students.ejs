@@ -23,10 +23,10 @@
             <tbody class="table-striped">
                 <% for(var i = 0; i < students.length; i++) { %>
                 <tr>
-                    <td><%= students[i].attrs.filter(a => a.name === 'firstname')[0].value %></td>
-                    <td><%= students[i].attrs.filter(a => a.name === 'lastname')[0].value %></td>
-                    <td><%= students[i].id %></td>
-                    <td><a href="/delete-student/<%= students[i].id %>" class="btn btn-outline-danger float-right">Remove</a></td>
+                    <td><%= students[i].firstname %></td>
+                    <td><%= students[i].lastname %></td>
+                    <td><%= students[i].username %></td>
+                    <td><a href="/delete-student/<%= students[i].username %>" class="btn btn-outline-danger float-right">Remove</a></td>
                 </tr>
                 <% } %>
             </tbody>

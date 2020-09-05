@@ -23,7 +23,7 @@ class PrototypeContract extends Contract {
                 Acronym: 'CLD',
                 Year: 2020,
                 Name: 'Cloud Computing',
-                Teacher: 'issac.newton@heig-vd.ch',
+                Teacher: 'isaac.newton@heig-vd.ch',
                 Students: ['amel.dussier@heig-vd.ch', 'elyas.dussier@heig-vd.ch'],
                 Active: true
             },
@@ -104,7 +104,7 @@ class PrototypeContract extends Contract {
             Students: [],
             Active: false,
         };
-        return ctx.stub.putState(course.id, Buffer.from(JSON.stringify(course)));
+        return ctx.stub.putState(course.ID, Buffer.from(JSON.stringify(course)));
     }
 
     async EnableCourse(ctx, id) {

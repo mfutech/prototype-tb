@@ -36,7 +36,7 @@
                     <% if (courses[i].Record.Active) { %>
                         <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/disable-course/<%= courses[i].Key %>');">Disable</button>
                     <% } else { %>
-                        <button type="button" class="btn btn-outline-success float-right" onClick="loading(this, '/enable-course/<%= courses[i].Key %>');">Enable</button>
+                        <button type="button" class="btn btn-success float-right" onClick="loading(this, '/enable-course/<%= courses[i].Key %>');">Enable</button>
                     <% } %>
                     </td>
                 </tr>
