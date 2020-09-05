@@ -26,13 +26,13 @@
                     <td><%= students[i].firstname %></td>
                     <td><%= students[i].lastname %></td>
                     <td><%= students[i].username %></td>
-                    <td><a href="/delete-student/<%= students[i].username %>" class="btn btn-outline-danger float-right">Remove</a></td>
+                    <td><a href="/students/delete/<%= students[i].username %>" class="btn btn-outline-danger float-right">Remove</a></td>
                 </tr>
                 <% } %>
             </tbody>
         </table>
 
-        <a class="btn btn-primary float-right mt-5" href="/add-student" role="button">Add student</a>
+        <a class="btn btn-primary float-right mt-5" href="/students/add" role="button">Add student</a>
     </div>
     
     <%- include('partials/script') %>

@@ -26,7 +26,7 @@
                 <% for(var i = 0; i < courses.length; i++) { %>
                 <tr>
                     <td>
-                        <a class="btn btn-link" href="/course-details/<%= courses[i].Key %>"><%= courses[i].Key %></a>
+                        <a class="btn btn-link" href="/courses/<%= courses[i].Key %>"><%= courses[i].Key %></a>
                     </td>
                     <td><%= courses[i].Record.Name %></td>
                     <td><%= courses[i].Record.Acronym %></td>
@@ -34,9 +34,9 @@
                     <td><%= courses[i].Record.Teacher %></td>
                     <td>
                     <% if (courses[i].Record.Active) { %>
-                        <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/disable-course/<%= courses[i].Key %>');">Disable</button>
+                        <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/disable');">Disable</button>
                     <% } else { %>
-                        <button type="button" class="btn btn-success float-right" onClick="loading(this, '/enable-course/<%= courses[i].Key %>');">Enable</button>
+                        <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/enable');">Enable</button>
                     <% } %>
                     </td>
                 </tr>
@@ -44,7 +44,7 @@
             </tbody>
         </table>
 
-        <a class="btn btn-primary float-right mt-5" href="/add-course" role="button">Add course</a>
+        <a class="btn btn-primary float-right mt-5" href="/courses/add" role="button">Add course</a>
     </div>
     
     <%- include('partials/script') %>
