@@ -18,7 +18,9 @@
                     <th scope="col">Name</th>
                     <th scope="col">Acronym</th>
                     <th scope="col">Year</th>
-                    <th scope="col">Teacher</th>
+                    <% if (locals.user.role !== "teacher") { %>
+                        <th scope="col">Teacher</th>
+                    <% } %>
                     <th scope="col"></th>
                 </tr>
             </thead>
@@ -31,20 +33,26 @@
                     <td><%= courses[i].Record.Name %></td>
                     <td><%= courses[i].Record.Acronym %></td>
                     <td><%= courses[i].Record.Year %></td>
-                    <td><%= courses[i].Record.Teacher %></td>
-                    <td>
-                    <% if (courses[i].Record.Active) { %>
-                        <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/disable');">Disable</button>
-                    <% } else { %>
-                        <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/enable');">Enable</button>
+                    <% if (locals.user.role !== "teacher") { %>
+                        <td><%= courses[i].Record.Teacher %></td>
                     <% } %>
+                    <td>
+                    <% if (locals.user.role === "secretariat") { %>
+                        <% if (courses[i].Record.Active) { %>
+                            <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/disable');">Disable</button>
+                        <% } else { %>
+                            <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/enable');">Enable</button>
+                        <% } %>
                     </td>
+                    <% } %>
                 </tr>
                 <% } %>
             </tbody>
         </table>
-
+        
+        <% if (locals.user.role === "secretariat") { %>
         <a class="btn btn-primary float-right mt-5" href="/courses/add" role="button">Add course</a>
+        <% } %>
     </div>
     
     <%- include('partials/script') %>

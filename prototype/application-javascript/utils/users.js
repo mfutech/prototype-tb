@@ -65,6 +65,7 @@ exports.enrollUser = async (caClient, wallet, orgMspId, username, password) => {
 		enrollmentID: username,
 		enrollmentSecret: password,
 		attr_reqs: [
+			{ name: 'hf.EnrollmentID', optional: false },
 			{ name: 'firstname', optional: false },
 			{ name: 'lastname', optional: false },
 			{ name: 'role', optional: false }
@@ -129,7 +130,7 @@ async function registerUser(caClient, wallet, username, password, firstname, las
 
 		}
 
-		// register new user
+		// register new identity
 		await caClient.register({
 			enrollmentID: username,
 			enrollmentSecret: password,

@@ -11,6 +11,7 @@ var courseRouter = function (caClient, wallet, gateway) {
             res.redirect('../login');
             return;
         }
+        res.locals.user = req.user;
         next();
     })
 

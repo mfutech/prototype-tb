@@ -1,6 +1,8 @@
 'use strict';
 
 const { Contract } = require('fabric-contract-api');
+const shim = require('fabric-shim');
+const logger = shim.newLogger('prototype-tb');
 
 class PrototypeContract extends Contract {
 
@@ -40,41 +42,76 @@ class PrototypeContract extends Contract {
         for (const course of courses) {
             course.docType = 'course';
             await ctx.stub.putState(course.ID, Buffer.from(JSON.stringify(course)));
-            console.info(`Course ${course.ID} initialized`);
+            logger.info(`Course ${course.ID} initialized`);
         }
 
         // sample grades
-        /*const grades = [
+        const grades = [
             {
-                ID: 'MLG_2020',
-                Name: 'Machine Learning',
-                Teacher: 'albert.einstein@heig-vd.ch',
-                Students: ['amel.dussier@heig-vd.ch'],
-                Active: true
+                ID: 'e51be259-5960-46d1-8bc5-b587f2ea2227',
+                Student: 'amel.dussier@heig-vd.ch',
+                Course: 'MLG_2020',
+                Value: 6,
+                Weight: .5,
+                Type: 'Lab'
             },
-            {
-                ID: 'CLD_2020',
-                Name: 'Cloud Computing',
-                Teacher: 'issac.newton@heig-vd.ch',
-                Students: ['amel.dussier@heig-vd.ch', 'elyas.dussier@heig-vd.ch'],
-                Active: true
-            },
-            {
-                ID: 'MLG_2019',
-                Name: 'Machine Learning',
-                Teacher: 'albert.einstein@heig-vd.ch',
-                Students: ['amel.dussier@heig-vd.ch'],
-                Active: false
-            }
         ];
-        for (const grade of grades) {
-            grade.docType = 'grade';
-            await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
-            console.info(`Course ${grade.ID} initialized`);
-        }*/
+        for (const g of grades) {
+            let grade = await this.AddGrade(ctx, g.ID, g.Student, g.Course, g.Uuid, g.Value, g.Weight, g.Type);
+            logger.info(`Grade ${JSON.stringify(grade)} initialized`);
+        }
     }
 
+    async ListGrades(ctx, studentId, courseId) {
+        const allResults = [];
+
+        // create partial key to search
+        const indexName = 'student~course~grade';
+        //const partialKey = await ctx.stub.createCompositeKey(indexName, [studentId, courseId]);
+
+        const iterator = await ctx.stub.getStateByPartialCompositeKey(indexName, [studentId, courseId]);
+        let result = await iterator.next();
+        while (!result.done) {
+            const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                logger.error(err);
+                record = strValue;
+            }
+            allResults.push({ Key: result.value.key, Record: record });
+            result = await iterator.next();
+        }
+        return JSON.stringify(allResults);
+    }
+
+    async AddGrade(ctx, id, studentId, courseId, value, weight, type) {
+		let grade = {
+            docType: 'grade',
+            ID: id,
+			Student: studentId,
+            Course: courseId,
+			Value: value,
+			Weight: weight,
+			Type: type
+        };
+        
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(grade)));
+
+        const indexName = 'student~course~grade';
+        const compositeKey = await ctx.stub.createCompositeKey(indexName, [grade.Student, grade.Course, grade.ID]);
+
+		//  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
+		//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
+		await ctx.stub.putState(compositeKey, Buffer.from('\u0000'));
+	}
+
     async ListCourses(ctx) {
+        // check role
+        const role = ctx.clientIdentity.getAttributeValue('role');
+        const userId = ctx.clientIdentity.getAttributeValue('hf.EnrollmentID');
+
         const allResults = [];
         // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
         const iterator = await ctx.stub.getStateByRange('', '');
@@ -85,10 +122,15 @@ class PrototypeContract extends Contract {
             try {
                 record = JSON.parse(strValue);
             } catch (err) {
-                console.log(err);
+                logger.error(err);
                 record = strValue;
             }
-            allResults.push({ Key: result.value.key, Record: record });
+            // todo: index?
+            if (record.docType === 'course') {
+                if (role !== 'teacher' || record.Teacher === userId) {
+                    allResults.push({ Key: result.value.key, Record: record });
+                }
+            }
             result = await iterator.next();
         }
         return JSON.stringify(allResults);

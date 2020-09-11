@@ -11,7 +11,11 @@ const mspOrg1 = 'Org1MSP';
 const express = require('express')
 var session = require("express-session")
 const app = express()
-app.use(session({ secret: 'blockchain :)' }));
+app.use(session({
+	secret: 'blockchain :)',
+	saveUninitialized: false,
+	resave: false
+}));
 const port = 3000
 
 var passport = require('passport')
@@ -62,7 +66,7 @@ app.get('/', (req, res) => {
 		res.redirect('/login');
 		return;
 	}
-
+	res.locals.user = req.user;
 	res.render('index');
 })
 
@@ -95,21 +99,16 @@ async function main() {
 		// enroll admin
 		await enrollAdmin(caClient, wallet, mspOrg1);
 
-		// register and enroll secretariat user
-		await addSecretariat(caClient, wallet, 'secretariat@heig-vd.ch', '1234', '', '');
-		await enrollUser(caClient, wallet, mspOrg1, 'secretariat@heig-vd.ch', '1234');
+		// register secretariat user
+		await addSecretariat(caClient, wallet, 'secretariat@heig-vd.ch', '1234', '', 'Secretariat');
 
-		// register and enroll sample professors
+		// register sample professors
 		await addTeacher(caClient, wallet, 'albert.einstein@heig-vd.ch', '1234', 'Albert', 'Einstein');
-		await enrollUser(caClient, wallet, mspOrg1, 'albert.einstein@heig-vd.ch', '1234');
 		await addTeacher(caClient, wallet, 'isaac.newton@heig-vd.ch', '1234', 'Isaac', 'Newton');
-		await enrollUser(caClient, wallet, mspOrg1, 'isaac.newton@heig-vd.ch', '1234');
 
-		// register and enroll sample students
+		// register sample students
 		await addStudent(caClient, wallet, 'amel.dussier@heig-vd.ch', '1234', 'Amel', 'Dussier');
-		await enrollUser(caClient, wallet, mspOrg1, 'amel.dussier@heig-vd.ch', '1234');
 		await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', '1234', 'Elays', 'Dussier');
-		await enrollUser(caClient, wallet, mspOrg1, 'elyas.dussier@heig-vd.ch', '1234');
 
 		// get smart contract
 		const contract = await getContract('admin');

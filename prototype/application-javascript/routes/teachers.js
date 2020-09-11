@@ -10,6 +10,7 @@ var teacherRouter = function (caClient, wallet) {
             res.redirect('../login');
             return;
         }
+        res.locals.user = req.user;
         next();
     })
 
