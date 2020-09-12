@@ -139,7 +139,7 @@ var courseRouter = function (caClient, wallet, gateway) {
     })
 
     // register student
-    router.post('/:courseId/unregister', async (req, res) => {
+    router.post('/:courseId/register', async (req, res) => {
         try {
             // get smart contract
             const contract = await getContract(req.user.username);

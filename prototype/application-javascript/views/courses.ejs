@@ -28,20 +28,20 @@
                 <% for(var i = 0; i < courses.length; i++) { %>
                 <tr>
                     <td>
-                        <a class="btn btn-link" href="/courses/<%= courses[i].Key %>"><%= courses[i].Key %></a>
+                        <a class="btn btn-link" href="/courses/<%= courses[i].ID %>"><%= courses[i].ID %></a>
                     </td>
-                    <td><%= courses[i].Record.Name %></td>
-                    <td><%= courses[i].Record.Acronym %></td>
-                    <td><%= courses[i].Record.Year %></td>
+                    <td><%= courses[i].Name %></td>
+                    <td><%= courses[i].Acronym %></td>
+                    <td><%= courses[i].Year %></td>
                     <% if (locals.user.role !== "teacher") { %>
-                        <td><%= courses[i].Record.Teacher %></td>
+                        <td><%= courses[i].Teacher %></td>
                     <% } %>
                     <td>
                     <% if (locals.user.role === "secretariat") { %>
-                        <% if (courses[i].Record.Active) { %>
-                            <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/disable');">Disable</button>
+                        <% if (courses[i].Active) { %>
+                            <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/disable');">Disable</button>
                         <% } else { %>
-                            <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].Key %>/enable');">Enable</button>
+                            <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/enable');">Enable</button>
                         <% } %>
                     </td>
                     <% } %>

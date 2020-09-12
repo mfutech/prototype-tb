@@ -21,7 +21,9 @@
                     <th scope="col">First name</th>
                     <th scope="col">Last name</th>
                     <th scope="col">Email</th>
-                    <th></th>
+                    <% if (locals.user.role === "secretariat") { %>
+                        <th></th>
+                    <% } %>
                 </tr>
             </thead>
             <tbody class="table-striped">
@@ -30,24 +32,28 @@
                     <td><%= students[i].firstname %></td>
                     <td><%= students[i].lastname %></td>
                     <td><%= students[i].username %></td>
-                    <td>
-                        <button type="button" class="btn btn-outline-warning float-right"
-                            onClick="loading(this, '/courses/<%= course.ID %>/unregister/<%= students[i].username %>');">Unregister</button>
-                    </td>
+                    <% if (locals.user.role === "secretariat") { %>
+                        <td>
+                            <button type="button" class="btn btn-outline-warning float-right"
+                                onClick="loading(this, '/courses/<%= course.ID %>/unregister/<%= students[i].username %>');">Unregister</button>
+                        </td>
+                    <% } %>
                 </tr>
                 <% } %>
             </tbody>
         </table>
 
-        <div class="float-right mt-5">
-            <form id="form" action="/courses/<%= course.ID %>/unregister" method="POST" class="form-inline">
-                <div class="form-group">
-                    <label for="username" class="sr-only">Username</label>
-                    <input type="email" class="form-control" id="username" name="username" placeholder="Email">
-                </div>
-                <button type="submit" class="btn btn-primary ml-3" onClick="loading(this);">Register student</button>
-            </form>
-        </div>
+        <% if (locals.user.role === "secretariat") { %>
+            <div class="float-right mt-5">
+                <form id="form" action="/courses/<%= course.ID %>/register" method="POST" class="form-inline">
+                    <div class="form-group">
+                        <label for="username" class="sr-only">Username</label>
+                        <input type="email" class="form-control" id="username" name="username" placeholder="Email">
+                    </div>
+                    <button type="submit" class="btn btn-primary ml-3" onClick="loading(this);">Register student</button>
+                </form>
+            </div>
+        <% } %>
     </div>
 
     <%- include('partials/script') %>
