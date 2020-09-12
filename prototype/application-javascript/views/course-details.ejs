@@ -18,10 +18,9 @@
         <table class="table">
             <thead class="thead-dark">
                 <tr>
-                    <th scope="col">First name</th>
-                    <th scope="col">Last name</th>
+                    <th scope="col">Name</th>
                     <th scope="col">Email</th>
-                    <% if (locals.user.role === "secretariat") { %>
+                    <% if (locals.user.role !== "student") { %>
                         <th></th>
                     <% } %>
                 </tr>
@@ -29,13 +28,20 @@
             <tbody class="table-striped">
                 <% for(var i = 0; i < students.length; i++) { %>
                 <tr>
-                    <td><%= students[i].firstname %></td>
-                    <td><%= students[i].lastname %></td>
+                    <td>
+                        <a class="btn btn-link" href="/grades/<%= students[i].username %>">
+                            <%= students[i].firstname %> <%= students[i].lastname %></td>
+                        </a>
                     <td><%= students[i].username %></td>
                     <% if (locals.user.role === "secretariat") { %>
                         <td>
-                            <button type="button" class="btn btn-outline-warning float-right"
+                            <button type="button" class="btn btn-outline-danger float-right"
                                 onClick="loading(this, '/courses/<%= course.ID %>/unregister/<%= students[i].username %>');">Unregister</button>
+                        </td>
+                    <% } else if (course.Active && locals.user.role === "teacher") { %>
+                        <td>
+                            <button type="button" class="btn btn-primary float-right"
+                                onClick="loading(this, '/grades/<%= students[i].username %>/add/<%= course.ID %>');">Add grade</button>
                         </td>
                     <% } %>
                 </tr>

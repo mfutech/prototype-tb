@@ -9,50 +9,106 @@
     <%- include('partials/menu') %>
 
     <div class="container">
-        <h1 class="py-5">Courses</h1>
 
-        <table class="table">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Acronym</th>
-                    <th scope="col">Year</th>
-                    <% if (locals.user.role !== "teacher") { %>
-                        <th scope="col">Teacher</th>
-                    <% } %>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody class="table-striped">
-                <% for(var i = 0; i < courses.length; i++) { %>
-                <tr>
-                    <td>
-                        <a class="btn btn-link" href="/courses/<%= courses[i].ID %>"><%= courses[i].ID %></a>
-                    </td>
-                    <td><%= courses[i].Name %></td>
-                    <td><%= courses[i].Acronym %></td>
-                    <td><%= courses[i].Year %></td>
-                    <% if (locals.user.role !== "teacher") { %>
-                        <td><%= courses[i].Teacher %></td>
-                    <% } %>
-                    <td>
-                    <% if (locals.user.role === "secretariat") { %>
-                        <% if (courses[i].Active) { %>
-                            <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/disable');">Disable</button>
-                        <% } else { %>
-                            <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/enable');">Enable</button>
-                        <% } %>
-                    </td>
-                    <% } %>
-                </tr>
-                <% } %>
-            </tbody>
-        </table>
-        
         <% if (locals.user.role === "secretariat") { %>
-        <a class="btn btn-primary float-right mt-5" href="/courses/add" role="button">Add course</a>
+            <h1 class="py-5">All courses</h1>
+
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Course</th>
+                        <th scope="col">Acronym</th>
+                        <th scope="col">Teacher</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody class="table-striped">
+                    <% for(var i = 0; i < courses.length; i++) { %>
+                    <tr>
+                        <td>
+                            <a class="btn btn-link" href="/courses/<%= courses[i].ID %>">
+                                <%= courses[i].Name %> <%= courses[i].Year %>
+                            </a>
+                        </td>
+                        <td><%= courses[i].Acronym %></td>
+                        <td><%= courses[i].Teacher %></td>
+                        <td>
+                            <% if (courses[i].Active) { %>
+                                <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/disable');">Disable</button>
+                            <% } else { %>
+                                <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/enable');">Enable</button>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+            
+            <a class="btn btn-primary float-right mt-5" href="/courses/add" role="button">Add course</a>
+        <% } else { %>
+            <h2 class="pt-5">Current courses</h2>
+
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Course</th>
+                        <th scope="col">Acronym</th>
+                        <% if (locals.user.role !== "teacher") { %>
+                            <th scope="col">Teacher</th>
+                        <% } %>
+                    </tr>
+                </thead>
+                <tbody class="table-striped">
+                    <% for(var i = 0; i < courses.length; i++) { %>
+                        <% if (courses[i].Active) { %>
+                            <tr>
+                                <td>
+                                    <a class="btn btn-link" href="/courses/<%= courses[i].ID %>">
+                                        <%= courses[i].Name %> <%= courses[i].Year %>
+                                    </a>
+                                </td>
+                                <td><%= courses[i].Acronym %></td>
+                                <% if (locals.user.role !== "teacher") { %>
+                                    <td><%= courses[i].Teacher %></td>
+                                <% } %>
+                            </tr>
+                        <% } %>
+                    <% } %>
+                </tbody>
+            </table>
+
+            <h2 class="pt-5">Inactive courses</h2>
+
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Course</th>
+                        <th scope="col">Acronym</th>
+                        <% if (locals.user.role !== "teacher") { %>
+                            <th scope="col">Teacher</th>
+                        <% } %>
+                    </tr>
+                </thead>
+                <tbody class="table-striped">
+                    <% for(var i = 0; i < courses.length; i++) { %>
+                        <% if (!courses[i].Active) { %>
+                            <tr>
+                                <td>
+                                    <a class="btn btn-link" href="/courses/<%= courses[i].ID %>">
+                                        <%= courses[i].Name %> <%= courses[i].Year %>
+                                    </a>
+                                </td>
+                                <td><%= courses[i].Acronym %></td>
+                                <% if (locals.user.role !== "teacher") { %>
+                                    <td><%= courses[i].Teacher %></td>
+                                <% } %>
+                            </tr>
+                        <% } %>
+                    <% } %>
+                </tbody>
+            </table>
         <% } %>
+        
     </div>
     
     <%- include('partials/script') %>

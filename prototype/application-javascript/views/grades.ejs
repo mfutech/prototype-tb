@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%- include('partials/head') %>
+</head>
+
+<body>
+    <%- include('partials/menu') %>
+
+    <div class="container">
+        <% if (locals.user.role === "student") { %>
+            <h1 class="py-5">My grades</h1>
+        <% } else { %>
+            <h1 class="py-5">Grades for <%= student.firstname %> <%= student.lastname %></h1>
+        <% } %>
+
+        <% for(var i = 0; i < courses.length; i++) { %>
+            <h2><%= courses[i].Name %> <%= courses[i].Year %></h2>
+            <table class="table mb-5">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Type</th>
+                        <th scope="col">Weight</th>
+                        <th scope="col">Value</th>
+                        <% if (courses[i].Active && locals.user.role === "teacher") { %>
+                            <th></th>
+                        <% } %>
+                    </tr>
+                </thead>
+                <tbody class="table-striped">
+                    <% for(var j = 0; j < courses[i].grades.length; j++) { %>
+                    <tr>
+                        <td><%= courses[i].grades[j].Type %></td>
+                        <td><%= courses[i].grades[j].Weight %></td>
+                        <td><b><%= courses[i].grades[j].Value %></b></td>
+                        <% if (courses[i].Active && locals.user.role === "teacher") { %>
+                            <td>
+                                <button class="btn btn-outline-primary float-right">Change</button>
+                            </td>
+                        <% } %>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
+    
+    <%- include('partials/script') %>
+</body>
+
+</html>

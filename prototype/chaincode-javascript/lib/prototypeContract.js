@@ -72,63 +72,116 @@ class PrototypeContract extends Contract {
         // sample grades
         const grades = [
             {
-                ID: 'e51be259-5960-46d1-8bc5-b587f2ea2227',
+                ID: 'e51be259-5960-46d1-8bc5-b587f2ea2220',
                 Student: 'amel.dussier@heig-vd.ch',
                 Course: 'MLG_2020',
                 Value: 6,
                 Weight: .5,
-                Type: 'Lab'
+                Type: 'Labo'
             },
-        ];
-        for (const g of grades) {
-            let grade = await this.AddGrade(ctx, g.ID, g.Student, g.Course, g.Uuid, g.Value, g.Weight, g.Type);
-            logger.info(`Grade ${JSON.stringify(grade)} initialized`);
-        }
-    }
-
-    async ListGrades(ctx, studentId, courseId) {
-        const allResults = [];
-
-        // create partial key to search
-        const indexName = 'student~course~grade';
-        //const partialKey = await ctx.stub.createCompositeKey(indexName, [studentId, courseId]);
-
-        const iterator = await ctx.stub.getStateByPartialCompositeKey(indexName, [studentId, courseId]);
-        let result = await iterator.next();
-        while (!result.done) {
-            const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
-            let record;
-            try {
-                record = JSON.parse(strValue);
-            } catch (err) {
-                logger.error(err);
-                record = strValue;
+            {
+                ID: 'e51be259-5960-46d1-8bc5-b587f2ea2221',
+                Student: 'amel.dussier@heig-vd.ch',
+                Course: 'MLG_2020',
+                Value: 4,
+                Weight: .5,
+                Type: 'Test'
+            },
+            {
+                ID: 'e51be259-5960-46d1-8bc5-b587f2ea2222',
+                Student: 'amel.dussier@heig-vd.ch',
+                Course: 'MLG_2019',
+                Value: 4.5,
+                Weight: .5,
+                Type: 'Labo'
+            },
+            {
+                ID: 'e51be259-5960-46d1-8bc5-b587f2ea2223',
+                Student: 'amel.dussier@heig-vd.ch',
+                Course: 'MLG_2019',
+                Value: 3,
+                Weight: .5,
+                Type: 'Test'
             }
-            allResults.push({ Key: result.value.key, Record: record });
-            result = await iterator.next();
+        ];
+        for (const grade of grades) {
+            
+            // add grade
+            grade.docType = gradeType;
+            await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
+
+            logger.info(`Grade ${grade.ID} initialized`);
         }
-        return JSON.stringify(allResults);
     }
 
+    /**
+     * List all grades for a student
+     * The grades returned depend on the identity of the caller
+     * @param {*} ctx context
+     * @param {*} studentId id of the student
+     */
+    async ListGrades(ctx, studentId) {
+        
+        // check role
+        const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
+        const userId = ctx.clientIdentity.getAttributeValue('hf.EnrollmentID');
+        if (role === studentRole && studentId !== userId) {
+            throw new Error(`Your role (${role}) does not allow you to access the grades of the student ${studentId}`);
+        }
+        logger.info(`Listing grades for user: ${userId}`);
+        
+        let grades = [];
+        if (role === teacherRole) {
+            // todo return only grades for courses of the calling teacher
+            let assets = await this.QueryGradesByStudent(ctx, studentId);
+            grades = assets.map(a => a.Record);
+        }
+        else {
+            // return all student grades
+            let assets = await this.QueryGradesByStudent(ctx, studentId);
+            grades = assets.map(a => a.Record);          
+        }
+
+        logger.info(`Returning grades: ${JSON.stringify(grades)}`);
+        return grades;
+    }
+
+    /**
+     * Add a grade to a student for a course
+     * @param {*} ctx context
+     * @param {*} id grade id
+     * @param {*} studentId id of the student
+     * @param {*} courseId id of the course
+     * @param {*} value grade value (0.0 to 6.0)
+     * @param {*} weight grade weight (0.1 to 1.0)
+     * @param {*} type grade type (Labo, Test or Exam)
+     */
     async AddGrade(ctx, id, studentId, courseId, value, weight, type) {
+        
+        // check role
+        const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
+        if (role !== teacherRole) {
+            throw new Error(`Your role (${role}) does not allow you to perform this action`);
+        }
+        
+        // check if course exist
+        const exists = await this.AssetExists(ctx, courseId);
+        if (!exists) {
+            throw new Error(`The course ${courseId} does not exist`);
+        }
+
+        // add grade
 		let grade = {
-            docType: gradeType,
             ID: id,
+            docType: gradeType,
 			Student: studentId,
             Course: courseId,
 			Value: value,
 			Weight: weight,
 			Type: type
         };
-        
-        await ctx.stub.putState(id, Buffer.from(JSON.stringify(grade)));
-
-        const indexName = 'student~course~grade';
-        const compositeKey = await ctx.stub.createCompositeKey(indexName, [grade.Student, grade.Course, grade.ID]);
-
-		//  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
-		//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
-		await ctx.stub.putState(compositeKey, Buffer.from('\u0000'));
+        logger.info(`Adding grade: ${JSON.stringify(grade)}`);
+        return await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
 	}
 
     /**
@@ -226,7 +279,7 @@ class PrototypeContract extends Contract {
             Active: false,
         };
         logger.info(`Adding course: ${JSON.stringify(course)}`);
-        return ctx.stub.putState(course.ID, Buffer.from(JSON.stringify(course)));
+        return await ctx.stub.putState(course.ID, Buffer.from(JSON.stringify(course)));
     }
 
     /**
@@ -264,7 +317,7 @@ class PrototypeContract extends Contract {
             Active: true,
         }
         logger.info(`Enabling course: ${JSON.stringify(updatedCourse)}`);
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
+        return await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
     }
 
     /**
@@ -302,7 +355,7 @@ class PrototypeContract extends Contract {
             Active: false,
         }
         logger.info(`Disabling course: ${JSON.stringify(updatedCourse)}`);
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
+        return await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
     }
 
     /**
@@ -468,6 +521,19 @@ class PrototypeContract extends Contract {
 		queryString.selector = {};
 		queryString.selector.docType = courseType;
         queryString.selector.Teacher = teacher;
+		return await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    }
+
+    /**
+     * Get grades for a student
+     * @param {*} ctx context
+     * @param {*} student the id of the teacher
+     */
+    async QueryGradesByStudent(ctx, student) {
+		let queryString = {};
+		queryString.selector = {};
+		queryString.selector.docType = gradeType;
+        queryString.selector.Student = student;
 		return await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
     }
 

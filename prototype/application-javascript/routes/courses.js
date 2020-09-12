@@ -141,6 +141,12 @@ var courseRouter = function (caClient, wallet, gateway) {
     // register student
     router.post('/:courseId/register', async (req, res) => {
         try {
+            // check if student exist
+            let student = await getUser(caClient, wallet, req.body.username);
+            if (!student) {
+                throw new Error(`The student ${req.body.username} does not exist`);
+            }
+
             // get smart contract
             const contract = await getContract(req.user.username);
 

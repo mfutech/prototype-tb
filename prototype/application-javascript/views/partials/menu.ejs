@@ -18,7 +18,7 @@
     <% } %>
     <% if (locals.user.role === "student") { %>
     <li class="nav-item">
-      <a class="nav-link" href="/grades">My grades</a>
+      <a class="nav-link" href="/grades/<%= locals.user.username %>">My grades</a>
     </li>
     <% } %>
   </ul>

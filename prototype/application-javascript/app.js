@@ -108,7 +108,7 @@ async function main() {
 
 		// register sample students
 		await addStudent(caClient, wallet, 'amel.dussier@heig-vd.ch', '1234', 'Amel', 'Dussier');
-		await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', '1234', 'Elays', 'Dussier');
+		await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', '1234', 'Elyas', 'Dussier');
 
 		// get smart contract
 		const contract = await getContract('admin');
@@ -128,6 +128,10 @@ async function main() {
 		// student router
 		var studentRouter = require('./routes/students');
 		app.use('/students', studentRouter(caClient, wallet));
+
+		// grade router
+		var gradeRouter = require('./routes/grades');
+		app.use('/grades', gradeRouter(caClient, wallet, gateway));
 
 	} catch (error) {
 		console.error(error);
