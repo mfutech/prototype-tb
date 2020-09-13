@@ -105,15 +105,19 @@ async function main() {
 		await enrollAdmin(caClient, wallet, mspOrg1);
 
 		// register secretariat user
-		await addSecretariat(caClient, wallet, 'secretariat@heig-vd.ch', '1234', '', 'Secretariat');
+		await addSecretariat(caClient, wallet, 'secretariat@heig-vd.ch', 'Pass123', 'Secretariat', 'HEIG-VD');
 
 		// register sample professors
-		await addTeacher(caClient, wallet, 'albert.einstein@heig-vd.ch', '1234', 'Albert', 'Einstein');
-		await addTeacher(caClient, wallet, 'isaac.newton@heig-vd.ch', '1234', 'Isaac', 'Newton');
+		await addTeacher(caClient, wallet, 'minnie.mouse@heig-vd.ch', 'Pass123', 'Minnie', 'Mouse');
+		await addTeacher(caClient, wallet, 'daisy.duck@heig-vd.ch', 'Pass123', 'Daisy', 'Duck');
+		await addTeacher(caClient, wallet, 'mulan.fa@heig-vd.ch', 'Pass123', 'Mulan', 'Fa');
+		await addTeacher(caClient, wallet, 'snow.white@heig-vd.ch', 'Pass123', 'Snow', 'White');
+		await addTeacher(caClient, wallet, 'tinker.bell@heig-vd.ch', 'Pass123', 'Tinker', 'Bell');
 
 		// register sample students
-		await addStudent(caClient, wallet, 'amel.dussier@heig-vd.ch', '1234', 'Amel', 'Dussier');
-		await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', '1234', 'Elyas', 'Dussier');
+		await addStudent(caClient, wallet, 'amel.dussier@heig-vd.ch', 'Pass123', 'Amel', 'Dussier');
+		await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', 'Pass123', 'Elyas', 'Dussier');
+		await addStudent(caClient, wallet, 'jade.dussier@heig-vd.ch', 'Pass123', 'Jade', 'Dussier');
 
 		// get smart contract
 		const contract = await getContract('admin');
