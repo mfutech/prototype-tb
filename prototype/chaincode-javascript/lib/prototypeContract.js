@@ -105,7 +105,7 @@ class PrototypeContract extends Contract {
             }
         ];
         for (const grade of grades) {
-            
+
             // add grade
             grade.docType = gradeType;
             await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
@@ -121,7 +121,7 @@ class PrototypeContract extends Contract {
      * @param {*} studentId id of the student
      */
     async ListGrades(ctx, studentId) {
-        
+
         // check role
         const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
         const userId = ctx.clientIdentity.getAttributeValue('hf.EnrollmentID');
@@ -129,7 +129,7 @@ class PrototypeContract extends Contract {
             throw new Error(`Your role (${role}) does not allow you to access the grades of the student ${studentId}`);
         }
         logger.info(`Listing grades for user: ${userId}`);
-        
+
         let grades = [];
         if (role === teacherRole) {
             // todo return only grades for courses of the calling teacher
@@ -139,7 +139,7 @@ class PrototypeContract extends Contract {
         else {
             // return all student grades
             let assets = await this.QueryGradesByStudent(ctx, studentId);
-            grades = assets.map(a => a.Record);          
+            grades = assets.map(a => a.Record);
         }
 
         logger.info(`Returning grades: ${JSON.stringify(grades)}`);
@@ -157,13 +157,13 @@ class PrototypeContract extends Contract {
      * @param {*} type grade type (Labo, Test or Exam)
      */
     async AddGrade(ctx, id, studentId, courseId, value, weight, type) {
-        
+
         // check role
         const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
         if (role !== teacherRole) {
             throw new Error(`Your role (${role}) does not allow you to perform this action`);
         }
-        
+
         // check if course exist
         const exists = await this.AssetExists(ctx, courseId);
         if (!exists) {
@@ -185,17 +185,47 @@ class PrototypeContract extends Contract {
 	}
 
     /**
+     * Check if a user is referenced in the ledger, as student or teacher
+     * @param {*} ctx context
+     * @param {*} userId the id of the student or teacher
+     */
+    async CheckIfUserIsReferenced(ctx, userId) {
+
+        // check role
+        const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
+        if (role !== secretariatRole) {
+            throw new Error(`Your role (${role}) does not allow you to perform this action`);
+        }
+
+        // check if user is a registered student
+        let assetKeys = await this.GetAssetKeysByPartialKey(ctx, studentCourseKey, [userId]);
+        if (assetKeys.length > 0) {
+            logger.info(`Student references found: ${JSON.stringify(assetKeys)}`);
+            return { isReferenced: true, referenceType: studentRole, references: assetKeys };
+        }
+
+        // check if user teaches a course
+        let assets = await this.QueryCoursesByTeacher(ctx, userId);
+        if (assets.length > 0) {
+            logger.info(`Teacher references found: ${JSON.stringify(assets)}`);
+            return { isReferenced: true, referenceType: teacherRole, references: assets.map(a => a.Key) };
+        }
+
+        return { isReferenced: false };
+    }
+
+    /**
      * List all courses
      * The courses returned depend on the identity of the caller
      * @param {*} ctx context
      */
     async ListCourses(ctx) {
-        
+
         // check role
         const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
         const userId = ctx.clientIdentity.getAttributeValue('hf.EnrollmentID');
         logger.info(`Listing courses for user: ${userId}`);
-        
+
         let courses = [];
         if (role === secretariatRole) {
             // return all courses
@@ -213,7 +243,7 @@ class PrototypeContract extends Contract {
             // get assets using the composite student to course key
             let assetKeys = await this.GetAssetKeysByPartialKey(ctx, studentCourseKey, [userId]);
             for (const assetKey of assetKeys) {
-                
+
                 // get the course key
                 let objectType;
                 let attributes;
@@ -227,7 +257,7 @@ class PrototypeContract extends Contract {
                 let course = JSON.parse(asset);
 
                 courses.push(course);
-            }            
+            }
         }
 
         logger.info(`Returning courses: ${JSON.stringify(courses)}`);
@@ -294,7 +324,7 @@ class PrototypeContract extends Contract {
         if (role !== secretariatRole) {
             throw new Error(`Your role (${role}) does not allow you to perform this action`);
         }
-        
+
         // check if course exist
         const exists = await this.AssetExists(ctx, id);
         if (!exists) {
@@ -332,7 +362,7 @@ class PrototypeContract extends Contract {
         if (role !== secretariatRole) {
             throw new Error(`Your role (${role}) does not allow you to perform this action`);
         }
-                
+
         // check if course exist
         const exists = await this.AssetExists(ctx, id);
         if (!exists) {
@@ -371,7 +401,7 @@ class PrototypeContract extends Contract {
         if (role !== secretariatRole) {
             throw new Error(`Your role (${role}) does not allow you to perform this action`);
         }
-                
+
         // check if course exist
         const exists = await this.AssetExists(ctx, courseId);
         if (!exists) {
@@ -424,7 +454,7 @@ class PrototypeContract extends Contract {
         if (role !== secretariatRole) {
             throw new Error(`Your role (${role}) does not allow you to perform this action`);
         }
-                
+
         // check if course exist
         const exists = await this.AssetExists(ctx, courseId);
         if (!exists) {
@@ -479,7 +509,7 @@ class PrototypeContract extends Contract {
     /**
      * Delete an asset
      * @param {*} ctx context
-     * @param {*} key asset key 
+     * @param {*} key asset key
      */
     async DeleteAsset(ctx, key) {
         const exists = await this.AssetExists(ctx, key);
@@ -492,7 +522,7 @@ class PrototypeContract extends Contract {
     /**
      * Check if an asset exist
      * @param {*} ctx context
-     * @param {*} key asset key 
+     * @param {*} key asset key
      */
     async AssetExists(ctx, key) {
         const assetJSON = await ctx.stub.getState(key);
@@ -546,7 +576,7 @@ class PrototypeContract extends Contract {
 		let resultsIterator = await ctx.stub.getQueryResult(queryString);
 		return await this.GetAllResults(resultsIterator, false);
     }
-    
+
     /**
      * Get all assets for a given iterator
      * @param {*} iterator the iterator

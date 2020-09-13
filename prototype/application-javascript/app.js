@@ -128,11 +128,11 @@ async function main() {
 
 		// teacher router
 		var teacherRouter = require('./routes/teachers');
-		app.use('/teachers', teacherRouter(caClient, wallet));
+		app.use('/teachers', teacherRouter(caClient, wallet, gateway));
 
 		// student router
 		var studentRouter = require('./routes/students');
-		app.use('/students', studentRouter(caClient, wallet));
+		app.use('/students', studentRouter(caClient, wallet, gateway));
 
 		// grade router
 		var gradeRouter = require('./routes/grades');

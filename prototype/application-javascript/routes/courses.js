@@ -5,7 +5,7 @@ var express = require('express')
 
 var courseRouter = function (caClient, wallet, gateway) {
     var router = express.Router();
-     
+
     router.use(function auth(req, res, next) {
         if (!req.isAuthenticated()) {
             res.redirect('../login');
@@ -16,17 +16,17 @@ var courseRouter = function (caClient, wallet, gateway) {
     })
 
     // list courses
-    router.get('/', async (req, res) => {    
+    router.get('/', async (req, res) => {
         let courses = [];
-    
+
         try {
             // get smart contract
             const contract = await getContract(req.user.username);
-    
+
             // get list of courses
             let result = await contract.evaluateTransaction('ListCourses');
             courses = JSON.parse(result.toString());
-    
+
             // render view
             res.render('courses', { courses: courses });
         }
@@ -47,7 +47,7 @@ var courseRouter = function (caClient, wallet, gateway) {
     })
 
     // add course
-    router.post('/add', async (req, res) => {        
+    router.post('/add', async (req, res) => {
         try {
             // get smart contract
             const contract = await getContract(req.user.username);
