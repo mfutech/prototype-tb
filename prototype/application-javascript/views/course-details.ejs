@@ -15,7 +15,7 @@
         <%= teacher.firstname %> <%= teacher.lastname %> (<%= teacher.username %>)
 
         <h2 class="pt-4">Students</h2>
-        <table class="table">
+        <table class="table table-sm">
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">Name</th>
@@ -35,12 +35,12 @@
                     <td><%= students[i].username %></td>
                     <% if (locals.user.role === "secretariat") { %>
                         <td>
-                            <button type="button" class="btn btn-outline-danger float-right"
+                            <button type="button" class="btn btn-outline-danger btn-sm float-right"
                                 onClick="loading(this, '/courses/<%= course.ID %>/unregister/<%= students[i].username %>');">Unregister</button>
                         </td>
                     <% } else if (course.Active && locals.user.role === "teacher") { %>
                         <td>
-                            <button type="button" class="btn btn-primary float-right"
+                            <button type="button" class="btn btn-primary btn-sm float-right"
                                 onClick="loading(this, '/grades/<%= students[i].username %>/add/<%= course.ID %>');">Add grade</button>
                         </td>
                     <% } %>

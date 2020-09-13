@@ -11,7 +11,7 @@
     <div class="container">
         <h1 class="py-5">Students</h1>
 
-        <table class="table">
+        <table class="table table-sm">
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">First name</th>
@@ -26,7 +26,7 @@
                     <td><%= students[i].firstname %></td>
                     <td><%= students[i].lastname %></td>
                     <td><%= students[i].username %></td>
-                    <td><a href="/students/delete/<%= students[i].username %>" class="btn btn-outline-danger float-right">Remove</a></td>
+                    <td><a href="/students/delete/<%= students[i].username %>" class="btn btn-outline-danger btn-sm float-right">Remove</a></td>
                 </tr>
                 <% } %>
             </tbody>

@@ -47,11 +47,14 @@ var gradeRouter = function (caClient, wallet, gateway) {
 
                 // add grades to course
                 course.grades = [];
+                let average = 0;
                 for (const grade of grades) {
                     if (grade.Course === courseId) {
                         course.grades.push(grade);
+                        average = average + grade.Value * grade.Weight;
                     }
                 }
+                course.average = average;
 
                 courses.push(course);
             }
@@ -109,6 +112,53 @@ var gradeRouter = function (caClient, wallet, gateway) {
             gateway.disconnect();
         }
     })
+
+    // edit grade form
+    router.get('/edit/:id', async (req, res) => {
+        try {
+            // get smart contract
+            const contract = await getContract(req.user.username);
+
+            // get grade
+            let gradeAsset = await contract.evaluateTransaction('ReadAsset', req.params.id);
+            let grade = JSON.parse(gradeAsset.toString());
+
+            // get student
+            let student = await getUser(caClient, wallet, grade.Student);
+
+            // get course
+            let courseAsset = await contract.evaluateTransaction('ReadAsset', grade.Course);
+            let course = JSON.parse(courseAsset.toString());
+
+            res.render('edit-grade', { course: course, student: student, grade: grade });
+        }
+        catch (error) {
+            res.render('error', { error: error });
+        }
+        finally {
+            gateway.disconnect();
+        }
+    })
+
+    // edit grade
+    router.post('/edit/:id', async (req, res) => {
+        try {
+            // get smart contract
+            const contract = await getContract(req.user.username);
+
+            // add grade
+            await contract.submitTransaction('UpdateGrade', req.params.id, req.body.value, req.body.weight, req.body.type);
+
+            res.redirect('/grades/' + req.body.studentId);
+        }
+        catch (error) {
+            res.render('error', { error: error });
+        }
+        finally {
+            gateway.disconnect();
+        }
+    })
+
 
     return router;
 }

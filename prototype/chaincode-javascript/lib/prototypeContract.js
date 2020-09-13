@@ -170,6 +170,15 @@ class PrototypeContract extends Contract {
             throw new Error(`The course ${courseId} does not exist`);
         }
 
+        // get course
+        let courseAsset = await this.ReadAsset(ctx, courseId);
+        let course = JSON.parse(courseAsset);
+
+        // check if course is active
+        if (!course.Active) {
+            throw new Error(`You are not allowed to add a grade for an inactive course`);
+        }
+
         // add grade
 		let grade = {
             ID: id,
@@ -182,6 +191,61 @@ class PrototypeContract extends Contract {
         };
         logger.info(`Adding grade: ${JSON.stringify(grade)}`);
         return await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
+    }
+
+    /**
+     * Edit a grade
+     * @param {*} ctx context
+     * @param {*} id grade id
+     * @param {*} value grade value (0.0 to 6.0)
+     * @param {*} weight grade weight (0.1 to 1.0)
+     * @param {*} type grade type (Labo, Test or Exam)
+     */
+    async UpdateGrade(ctx, id, value, weight, type) {
+
+        // check role
+        const role = ctx.clientIdentity.getAttributeValue(roleAttribute);
+        const userId = ctx.clientIdentity.getAttributeValue('hf.EnrollmentID');
+        if (role !== teacherRole) {
+            throw new Error(`Your role (${role}) does not allow you to perform this action`);
+        }
+
+        // check if grade exist
+        const exists = await this.AssetExists(ctx, id);
+        if (!exists) {
+            throw new Error(`The grade ${id} does not exist`);
+        }
+
+        // get current grade
+        let gradeAsset = await this.ReadAsset(ctx, id);
+        let grade = JSON.parse(gradeAsset);
+
+        // get course
+        let courseAsset = await this.ReadAsset(ctx, grade.Course);
+        let course = JSON.parse(courseAsset);
+
+        // check if course is active
+        if (!course.Active) {
+            throw new Error(`You are not allowed to edit a grade for an inactive course`);
+        }
+
+        // check if user is teaching the course
+        if (!course.Teacher === userId) {
+            throw new Error(`You are only allowed to edit a grade for course you teach`);
+        }
+
+        // update grade
+		let updatedGrade = {
+            ID: id,
+            docType: gradeType,
+			Student: grade.Student,
+            Course: grade.Course,
+			Value: value,
+			Weight: weight,
+			Type: type
+        };
+        logger.info(`Updating grade: ${JSON.stringify(updatedGrade)}`);
+        return await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedGrade)));
 	}
 
     /**

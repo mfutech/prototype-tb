@@ -11,9 +11,9 @@
     <div class="container">
 
         <% if (locals.user.role === "secretariat") { %>
-            <h1 class="py-5">All courses</h1>
+            <h1 class="py-5">Courses</h1>
 
-            <table class="table">
+            <table class="table table-sm">
                 <thead class="thead-dark">
                     <tr>
                         <th scope="col">Course</th>
@@ -26,7 +26,7 @@
                     <% for(var i = 0; i < courses.length; i++) { %>
                     <tr>
                         <td>
-                            <a class="btn btn-link" href="/courses/<%= courses[i].ID %>">
+                            <a class="btn btn-link btn-sm" href="/courses/<%= courses[i].ID %>">
                                 <%= courses[i].Name %> <%= courses[i].Year %>
                             </a>
                         </td>
@@ -34,21 +34,21 @@
                         <td><%= courses[i].Teacher %></td>
                         <td>
                             <% if (courses[i].Active) { %>
-                                <button type="button" class="btn btn-outline-warning float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/disable');">Disable</button>
+                                <button type="button" class="btn btn-outline-warning btn-sm float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/disable');">Disable</button>
                             <% } else { %>
-                                <button type="button" class="btn btn-success float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/enable');">Enable</button>
+                                <button type="button" class="btn btn-success btn-sm float-right" onClick="loading(this, '/courses/<%= courses[i].ID %>/enable');">Enable</button>
                             <% } %>
                         </td>
                     </tr>
                     <% } %>
                 </tbody>
             </table>
-            
+
             <a class="btn btn-primary float-right mt-5" href="/courses/add" role="button">Add course</a>
         <% } else { %>
             <h2 class="pt-5">Current courses</h2>
 
-            <table class="table">
+            <table class="table table-sm">
                 <thead class="thead-dark">
                     <tr>
                         <th scope="col">Course</th>
@@ -63,7 +63,7 @@
                         <% if (courses[i].Active) { %>
                             <tr>
                                 <td>
-                                    <a class="btn btn-link" href="/courses/<%= courses[i].ID %>">
+                                    <a class="btn btn-link btn-sm" href="/courses/<%= courses[i].ID %>">
                                         <%= courses[i].Name %> <%= courses[i].Year %>
                                     </a>
                                 </td>
@@ -79,7 +79,7 @@
 
             <h2 class="pt-5">Inactive courses</h2>
 
-            <table class="table">
+            <table class="table table-sm">
                 <thead class="thead-dark">
                     <tr>
                         <th scope="col">Course</th>
@@ -94,7 +94,7 @@
                         <% if (!courses[i].Active) { %>
                             <tr>
                                 <td>
-                                    <a class="btn btn-link" href="/courses/<%= courses[i].ID %>">
+                                    <a class="btn btn-link btn-sm" href="/courses/<%= courses[i].ID %>">
                                         <%= courses[i].Name %> <%= courses[i].Year %>
                                     </a>
                                 </td>
@@ -108,9 +108,9 @@
                 </tbody>
             </table>
         <% } %>
-        
+
     </div>
-    
+
     <%- include('partials/script') %>
 </body>
 
