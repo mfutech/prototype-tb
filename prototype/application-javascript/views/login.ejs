@@ -10,6 +10,12 @@
         <a class="navbar-brand" href="/">Blockchain prototype</a>
     </nav>
 
+    <% if (locals.error != '') { %>
+        <div class="alert alert-danger text-center" role="alert">
+            <%= error %>
+        </div>
+    <% } %>
+
     <div class="container">
         <h1 class="py-5">Login</h1>
 

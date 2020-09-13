@@ -18,6 +18,9 @@ app.use(session({
 }));
 const port = 3000
 
+var flash = require('connect-flash');
+app.use(flash());
+
 var passport = require('passport')
 	, LocalStrategy = require('passport-local').Strategy;
 app.use(passport.initialize());
@@ -31,7 +34,7 @@ passport.use(new LocalStrategy(
 		}
 		catch (error) {
 			console.error('Login failed for user: ', username);
-			return done(null, false);
+			return done(null, false, { message: 'Bad username or password' });
 		}
 	}
 ));
@@ -70,7 +73,8 @@ app.get('/', (req, res) => {
 	res.render('index');
 })
 
-app.get('/login', (_, res) => {
+app.get('/login', (req, res) => {
+	res.locals.error = req.flash('error');
 	res.render('login');
 })
 
@@ -78,6 +82,7 @@ app.post('/login',
 	passport.authenticate('local', {
 		successRedirect: '/',
 		failureRedirect: '/login',
+		failureFlash: true
 	})
 );
 
