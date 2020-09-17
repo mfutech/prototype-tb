@@ -42,7 +42,7 @@ var gradeRouter = function (caClient, wallet, gateway) {
             for (const courseId of courseIds) {
 
                 // get full course
-                let asset = await contract.evaluateTransaction('ReadAsset', courseId);
+                let asset = await contract.evaluateTransaction('GetCourse', courseId);
                 let course = JSON.parse(asset.toString());
 
                 // add grades to course
@@ -80,7 +80,7 @@ var gradeRouter = function (caClient, wallet, gateway) {
             let student = await getUser(caClient, wallet, req.params.studentId);
 
             // get course
-            let asset = await contract.evaluateTransaction('ReadAsset', req.params.courseId);
+            let asset = await contract.evaluateTransaction('GetCourse', req.params.courseId);
             let course = JSON.parse(asset.toString());
 
             res.render('add-grade', { course: course, student: student });
@@ -120,14 +120,14 @@ var gradeRouter = function (caClient, wallet, gateway) {
             const contract = await getContract(req.user.username);
 
             // get grade
-            let gradeAsset = await contract.evaluateTransaction('ReadAsset', req.params.id);
+            let gradeAsset = await contract.evaluateTransaction('GetGrade', req.params.id);
             let grade = JSON.parse(gradeAsset.toString());
 
             // get student
             let student = await getUser(caClient, wallet, grade.Student);
 
             // get course
-            let courseAsset = await contract.evaluateTransaction('ReadAsset', grade.Course);
+            let courseAsset = await contract.evaluateTransaction('GetCourse', grade.Course);
             let course = JSON.parse(courseAsset.toString());
 
             res.render('edit-grade', { course: course, student: student, grade: grade });

@@ -73,7 +73,7 @@ var courseRouter = function (caClient, wallet, gateway) {
             const contract = await getContract(req.user.username);
 
             // get course
-            let result = await contract.evaluateTransaction('ReadAsset', req.params.courseId);
+            let result = await contract.evaluateTransaction('GetCourse', req.params.courseId);
             let course = JSON.parse(result.toString());
 
             // get students
