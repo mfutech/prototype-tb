@@ -12,10 +12,18 @@ const { buildCAClient } = require('./CAUtil.js');
 // build an in memory object with the network configuration (also known as a connection profile)
 const ccp = buildCCPOrg1();
 
+// create a new gateway instance for interacting with the Hyperledger Fabric network
+const gateway = new Gateway();
+
 // the wallet to hold the credentials of the application users
 let wallet = undefined
 
-// wallet initialization
+/**
+ * Initialize a new wallet
+ *
+ * @async
+ * @returns {Wallet} a new wallet
+ */
 exports.initWallet = async () => {
 
 	// build new in-memory wallet
@@ -25,17 +33,23 @@ exports.initWallet = async () => {
 	return wallet;
 };
 
-// build an instance of the fabric ca services client based on
-// the information in the network configuration
+/**
+ * Get a new client to interact with the certification authority
+ *
+ * @async
+ * @returns {FabricCAServices} a certification authority client
+ */
 exports.getCaClient = () => {
 	return buildCAClient(FabricCAServices, ccp, 'ca.org1.example.com');
 };
 
-// Create a new gateway instance for interacting with the fabric network.
-// In a real application this would be done as the backend server session is setup for
-// a user that has been verified.
-const gateway = new Gateway();
-
+/**
+ * Get a reference to the prototype chaincode contract
+ *
+ * @async
+ * @param {string} username the current connected username
+ * @returns {Contract} the chaincode contract
+ */
 exports.getContract = async (username) => {
     // setup the gateway instance
 	// The user will now be able to create connections to the fabric network and be able to

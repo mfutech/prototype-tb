@@ -1,12 +1,24 @@
+'use strict';
+
 const { getUser } = require('../utils/users');
 const { getContract } = require('../utils/network');
 const { v4: uuidv4 } = require('uuid');
 
 var express = require('express')
 
+/**
+ * Router for grade endpoints
+ *
+ * @param {FabricCAServices} caClient certification authority client
+ * @param {Wallet} wallet identity wallet
+ * @param {Gateway} gateway Hyperledger Fabric network gateway
+ */
 var gradeRouter = function (caClient, wallet, gateway) {
     var router = express.Router();
 
+    /**
+     * Check if user is authenticated
+     */
     router.use(function auth(req, res, next) {
         if (!req.isAuthenticated()) {
             res.redirect('../login');
@@ -16,7 +28,9 @@ var gradeRouter = function (caClient, wallet, gateway) {
         next();
     })
 
-    // list grades
+    /**
+     * List all student grades available to the connected user
+     */
     router.get('/:studentId', async (req, res) => {
         try {
             // get smart contract
@@ -70,7 +84,9 @@ var gradeRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // add grade form
+    /**
+     * Redirect to the add grade form
+     */
     router.get('/:studentId/add/:courseId', async (req, res) => {
         try {
             // get smart contract
@@ -93,7 +109,9 @@ var gradeRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // add grade
+    /**
+     * Adds a new grade to a student for a course
+     */
     router.post('/:studentId/add/:courseId', async (req, res) => {
         try {
             // get smart contract
@@ -113,7 +131,9 @@ var gradeRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // edit grade form
+    /**
+     * Redirect to the edit grade form
+     */
     router.get('/edit/:id', async (req, res) => {
         try {
             // get smart contract
@@ -140,7 +160,9 @@ var gradeRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // edit grade
+    /**
+     * Edits an existing grade
+     */
     router.post('/edit/:id', async (req, res) => {
         try {
             // get smart contract
@@ -158,7 +180,6 @@ var gradeRouter = function (caClient, wallet, gateway) {
             gateway.disconnect();
         }
     })
-
 
     return router;
 }

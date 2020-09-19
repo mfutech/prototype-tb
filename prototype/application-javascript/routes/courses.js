@@ -1,11 +1,23 @@
+'use strict';
+
 const { getUser, listTeachers } = require('../utils/users');
 const { getContract } = require('../utils/network');
 
-var express = require('express')
+var express = require('express');
 
+/**
+ * Router for course endpoints
+ *
+ * @param {FabricCAServices} caClient certification authority client
+ * @param {Wallet} wallet identity wallet
+ * @param {Gateway} gateway Hyperledger Fabric network gateway
+ */
 var courseRouter = function (caClient, wallet, gateway) {
     var router = express.Router();
 
+    /**
+     * Check if user is authenticated
+     */
     router.use(function auth(req, res, next) {
         if (!req.isAuthenticated()) {
             res.redirect('../login');
@@ -15,17 +27,17 @@ var courseRouter = function (caClient, wallet, gateway) {
         next();
     })
 
-    // list courses
+    /**
+     * List all courses available to the connected user
+     */
     router.get('/', async (req, res) => {
-        let courses = [];
-
         try {
             // get smart contract
             const contract = await getContract(req.user.username);
 
             // get list of courses
             let result = await contract.evaluateTransaction('ListCourses');
-            courses = JSON.parse(result.toString());
+            let courses = JSON.parse(result.toString());
 
             // render view
             res.render('courses', { courses: courses });
@@ -38,15 +50,24 @@ var courseRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // add course form
-    router.get('/add', async (req, res) => {
-        // get teachers
-        const teachers = await listTeachers(caClient, wallet);
+    /**
+     * Redirect to the add course form
+     */
+    router.get('/add', async (_, res) => {
+        try {
+            // get teachers
+            const teachers = await listTeachers(caClient, wallet);
 
-        res.render('add-course', { teachers: teachers });
+            res.render('add-course', { teachers: teachers });
+        }
+        catch (error) {
+            res.render('error', { error: error });
+        }
     })
 
-    // add course
+    /**
+     * Add a new course
+     */
     router.post('/add', async (req, res) => {
         try {
             // get smart contract
@@ -66,7 +87,9 @@ var courseRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // course details
+    /**
+     * Details page for a course
+     */
     router.get('/:courseId', async (req, res) => {
         try {
             // get smart contract
@@ -98,7 +121,9 @@ var courseRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // enable course
+    /**
+     * Enables a course
+     */
     router.get('/:courseId/enable', async (req, res) => {
         try {
             // get smart contract
@@ -118,7 +143,10 @@ var courseRouter = function (caClient, wallet, gateway) {
         res.redirect('/courses');
     })
 
-    // disable course
+
+    /**
+     * Disables a course
+     */
     router.get('/:courseId/disable', async (req, res) => {
         try {
             // get smart contract
@@ -138,13 +166,15 @@ var courseRouter = function (caClient, wallet, gateway) {
         res.redirect('/courses');
     })
 
-    // register student
+    /**
+     * Registers a student to a course
+     */
     router.post('/:courseId/register', async (req, res) => {
         try {
             // check if student exist
             let student = await getUser(caClient, wallet, req.body.username);
             if (!student) {
-                throw new Error(`The student ${req.body.username} does not exist`);
+                throw new Error(`The student '${req.body.username}' does not exist`);
             }
 
             // get smart contract
@@ -164,7 +194,9 @@ var courseRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // unregister student
+    /**
+     * Unregisters a student from a course
+     */
     router.get('/:courseId/unregister/:studentId', async (req, res) => {
         try {
             // get smart contract

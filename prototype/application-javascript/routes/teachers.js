@@ -1,11 +1,23 @@
+'use strict';
+
 const { listTeachers, addTeacher, removeUser } = require('../utils/users');
 const { getContract } = require('../utils/network');
 
 var express = require('express')
 
+/**
+ * Router for teacher endpoints
+ *
+ * @param {FabricCAServices} caClient certification authority client
+ * @param {Wallet} wallet identity wallet
+ * @param {Gateway} gateway Hyperledger Fabric network gateway
+ */
 var teacherRouter = function (caClient, wallet, gateway) {
     var router = express.Router();
 
+    /**
+     * Check if user is authenticated
+     */
     router.use(function auth(req, res, next) {
         if (!req.isAuthenticated()) {
             res.redirect('../login');
@@ -15,9 +27,16 @@ var teacherRouter = function (caClient, wallet, gateway) {
         next();
     })
 
-    // list teachers
-    router.get('/', async (req, res) => {
+    /**
+     * List all teachers
+     */
+    router.get('/', async (_, res) => {
         try {
+            // check role
+            if (req.user.role !== 'secretariat') {
+                throw new Error('You are not allowed to access this page');
+            }
+
             const teachers = await listTeachers(caClient, wallet);
             res.render('teachers', { teachers: teachers });
         }
@@ -26,14 +45,29 @@ var teacherRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // add teacher form
-    router.get('/add', (req, res) => {
+    /**
+     * Redirect to the add student form
+     */
+    router.get('/add', (_, res) => {
+        // check role
+        if (req.user.role !== 'secretariat') {
+            res.render('error', { error: new Error('You are not allowed to access this page')});
+            return;
+        }
+
         res.render('add-teacher');
     })
 
-    // add teacher
+    /**
+     * Adds a new teacher
+     */
     router.post('/add', async (req, res) => {
         try {
+            // check role
+            if (req.user.role !== 'secretariat') {
+                throw new Error('You are not allowed to access this page');
+            }
+
             await addTeacher(caClient, wallet, req.body.email, req.body.password, req.body.firstname, req.body.lastname);
             res.redirect('/teachers');
         }
@@ -42,7 +76,9 @@ var teacherRouter = function (caClient, wallet, gateway) {
         }
     })
 
-    // delete teacher
+    /**
+     * Deletes a teacher (if not used)
+     */
     router.get('/delete/:teacherId', async (req, res) => {
         try {
             // get smart contract
