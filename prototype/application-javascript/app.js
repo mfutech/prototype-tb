@@ -4,7 +4,6 @@ const { Gateway } = require('fabric-network');
 const { enrollAdmin } = require('./utils/CAUtil.js');
 const { enrollUser, addStudent, addTeacher, addSecretariat } = require('./utils/users');
 const { getCaClient, getContract, initWallet } = require('./utils/network');
-const path = require('path');
 
 const mspOrg1 = 'Org1MSP';
 
@@ -97,9 +96,8 @@ app.listen(port, () => {
 
 async function main() {
 	try {
-		// setup the wallet
-		const walletPath = path.join(__dirname, 'wallet');
-		wallet = await initWallet(walletPath);
+		// initialize the wallet
+		wallet = await initWallet();
 
 		// enroll admin
 		await enrollAdmin(caClient, wallet, mspOrg1);

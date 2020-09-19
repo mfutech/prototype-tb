@@ -1,38 +1,27 @@
+'use strict';
+
+/**
+ * Hyperledger Fabric network helper methods
+ */
+
 const FabricCAServices = require('fabric-ca-client');
 const { Gateway, Wallets } = require('fabric-network');
 const { buildCCPOrg1, buildWallet } = require('./AppUtil.js');
 const { buildCAClient } = require('./CAUtil.js');
-const fs = require('fs');
-const path = require('path');
 
 // build an in memory object with the network configuration (also known as a connection profile)
 const ccp = buildCCPOrg1();
 
-// recursively delete a folder
-const deleteFolderRecursive = function (folder) {
-	if (fs.existsSync(folder)) {
-		fs.readdirSync(folder).forEach((file, index) => {
-			const curPath = path.join(folder, file);
-			if (fs.lstatSync(curPath).isDirectory()) { // recurse
-				deleteFolderRecursive(curPath);
-			} else { // delete file
-				fs.unlinkSync(curPath);
-			}
-		});
-		fs.rmdirSync(folder);
-	}
-};
-
 // the wallet to hold the credentials of the application users
 let wallet = undefined
 
-exports.initWallet = async (walletPath) => {
-	// clear old wallet
-	deleteFolderRecursive(walletPath);
+// wallet initialization
+exports.initWallet = async () => {
 
-	// build new wallet
-	wallet = await buildWallet(Wallets, walletPath);
+	// build new in-memory wallet
+	wallet = await buildWallet(Wallets);
 
+	// return a reference to the wallet
 	return wallet;
 };
 
