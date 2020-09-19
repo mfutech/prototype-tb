@@ -13,7 +13,7 @@ exports.GRADE_TYPE = 'grade';
 /**
  * attributes
  */
-exports.ROLE_ATTRIBUTE = 'role';
+exports.ROLE_ATTRIBUTE = 'app_role';
 exports.ENROLLMENT_ID_ATTRIBUTE = 'hf.EnrollmentID';
 
 /**

@@ -1,6 +1,25 @@
 'use strict';
 
+/**
+ * Hyperledger Fabric user management helper methods
+ */
+
+/**
+ * admin enrollment id
+ */
 const adminUserId = 'admin';
+
+/**
+ * attribute names
+ */
+const enrollmentIdAttribute = 'hf.EnrollmentID';
+const firstnameAttribute = 'firstname';
+const lastnameAttribute = 'lastname';
+const appRoleAttribute = 'app_role';
+
+/**
+ * custom application roles
+ */
 const studentRole = 'student';
 const teacherRole = 'teacher';
 const secretariatRole = 'secretariat';
@@ -22,12 +41,12 @@ async function getAllIdentities(caClient, wallet, role) {
 		const identityService = caClient.newIdentityService();
 		let response = await identityService.getAll(adminUser);
 		return response.result.identities
-			.filter(i => i.attrs.some(a => a.name === 'role' && a.value === role))
+			.filter(i => i.attrs.some(a => a.name === appRoleAttribute && a.value === role))
 			.map(i => ({
 					username: i.id,
-					firstname: i.attrs.filter(a => a.name === 'firstname')[0].value,
-					lastname: i.attrs.filter(a => a.name === 'lastname')[0].value,
-					role: i.attrs.filter(a => a.name === 'role')[0].value
+					firstname: i.attrs.filter(a => a.name === firstnameAttribute)[0].value,
+					lastname: i.attrs.filter(a => a.name === lastnameAttribute)[0].value,
+					role: i.attrs.filter(a => a.name === appRoleAttribute)[0].value
 				}));
 	} catch (error) {
 		console.error(`Failed to list identities : ${error}`);
@@ -65,10 +84,10 @@ exports.enrollUser = async (caClient, wallet, orgMspId, username, password) => {
 		enrollmentID: username,
 		enrollmentSecret: password,
 		attr_reqs: [
-			{ name: 'hf.EnrollmentID', optional: false },
-			{ name: 'firstname', optional: false },
-			{ name: 'lastname', optional: false },
-			{ name: 'role', optional: false }
+			{ name: enrollmentIdAttribute, optional: false },
+			{ name: firstnameAttribute, optional: false },
+			{ name: lastnameAttribute, optional: false },
+			{ name: appRoleAttribute, optional: false }
 		]
 	});
 
@@ -97,9 +116,9 @@ exports.enrollUser = async (caClient, wallet, orgMspId, username, password) => {
 
 	return {
 		username: username,
-		firstname: response.result.attrs.filter(a => a.name === 'firstname')[0].value,
-		lastname: response.result.attrs.filter(a => a.name === 'lastname')[0].value,
-		role: response.result.attrs.filter(a => a.name === 'role')[0].value
+		firstname: response.result.attrs.filter(a => a.name === firstnameAttribute)[0].value,
+		lastname: response.result.attrs.filter(a => a.name === lastnameAttribute)[0].value,
+		role: response.result.attrs.filter(a => a.name === appRoleAttribute)[0].value
 	};
 };
 
@@ -138,17 +157,17 @@ async function registerUser(caClient, wallet, username, password, firstname, las
 			maxEnrollments: -1,
 			attrs: [
 				{
-					name: 'firstname',
+					name: firstnameAttribute,
 					value: firstname,
 					ecert: true
 				},
 				{
-					name: 'lastname',
+					name: lastnameAttribute,
 					value: lastname,
 					ecert: true
 				},
 				{
-					name: 'role',
+					name: appRoleAttribute,
 					value: role,
 					ecert: true
 				}
@@ -222,9 +241,9 @@ exports.getUser = async (caClient, wallet, username) => {
 
 		return {
 			username: username,
-			firstname: response.result.attrs.filter(a => a.name === 'firstname')[0].value,
-			lastname: response.result.attrs.filter(a => a.name === 'lastname')[0].value,
-			role: response.result.attrs.filter(a => a.name === 'role')[0].value
+			firstname: response.result.attrs.filter(a => a.name === firstnameAttribute)[0].value,
+			lastname: response.result.attrs.filter(a => a.name === lastnameAttribute)[0].value,
+			role: response.result.attrs.filter(a => a.name === appRoleAttribute)[0].value
 		};
 	}
 	catch (error) {
