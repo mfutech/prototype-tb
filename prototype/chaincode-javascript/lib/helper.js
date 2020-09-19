@@ -31,8 +31,8 @@ exports.ReadAsset = async (ctx, key) => {
  * @param {string} key asset key
  */
 exports.DeleteAsset = async (ctx, key) => {
-    const exists = await AssetExists(ctx, key);
-    if (!exists) {
+    const assetJSON = await ctx.stub.getState(key);
+    if (!assetJSON || assetJSON.length === 0) {
         throw new Error(`The asset '${key}' does not exist`);
     }
     await ctx.stub.deleteState(key);
