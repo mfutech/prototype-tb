@@ -7,13 +7,19 @@ const { ENROLLMENT_ID_ATTRIBUTE, ROLE_ATTRIBUTE, STUDENT_ROLE, TEACHER_ROLE, SEC
 const helper = require('./helper');
 const { SAMPLE_COURSES, SAMPLE_GRADES } = require('./samples');
 
+/**
+ * prototype chaincode contract
+ */
 class PrototypeContract extends Contract {
 
     /**
      * List all grades for a student
      * The grades returned depend on the identity of the caller
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} studentId id of the student
+     * @returns {Promise<Object[]>} a list of grades
      */
     async ListGrades(ctx, studentId) {
 
@@ -21,15 +27,14 @@ class PrototypeContract extends Contract {
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         const userId = ctx.clientIdentity.getAttributeValue(ENROLLMENT_ID_ATTRIBUTE);
         if (role === STUDENT_ROLE && studentId !== userId) {
-            throw new Error(`Your role (${role}) does not allow you to access the grades of the student ${studentId}`);
+            throw new Error('You are not allowed to access the grades of other students');
         }
         logger.info(`Listing grades for user: ${userId}`);
 
         let grades = [];
         if (role === TEACHER_ROLE) {
             // return only grades for courses of the calling teacher
-            let assets = await helper.QueryGradesByStudent(ctx, studentId);
-            let allGrades = assets.map(a => a.Record);
+            let allGrades = await helper.QueryGradesByStudent(ctx, studentId);
             for (const grade of allGrades) {
 
                 // get course
@@ -43,8 +48,7 @@ class PrototypeContract extends Contract {
         }
         else {
             // return all student grades
-            let assets = await helper.QueryGradesByStudent(ctx, studentId);
-            grades = assets.map(a => a.Record);
+            grades = await helper.QueryGradesByStudent(ctx, studentId);
         }
 
         logger.info(`Returning grades: ${JSON.stringify(grades)}`);
@@ -53,20 +57,17 @@ class PrototypeContract extends Contract {
 
     /**
      * Return a specific grade
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} id the id of the grade to return
+     * @returns {Promise<Object>} a grade
      */
     async GetGrade(ctx, id) {
 
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         const userId = ctx.clientIdentity.getAttributeValue(ENROLLMENT_ID_ATTRIBUTE);
-
-        // check if grade exist
-        const exists = await helper.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The grade ${id} does not exist`);
-        }
 
         // get grade
         let grade = await helper.ReadAsset(ctx, id);
@@ -78,11 +79,11 @@ class PrototypeContract extends Contract {
 
         // teachers can only see grades for the courses they teach
         if (role === TEACHER_ROLE && course.Teacher !== userId) {
-            throw new Error(`You are only allowed to see grades for courses you teach`);
+            throw new Error('You are only allowed to see grades for courses you teach');
         }
         // students can only see their grades
         else if (role === STUDENT_ROLE && grade.Student !== userId) {
-            throw new Error(`You are not allowed to access the grades of other students`);
+            throw new Error('You are not allowed to access the grades of other students');
         }
 
         return grade;
@@ -90,7 +91,9 @@ class PrototypeContract extends Contract {
 
     /**
      * Add a grade to a student for a course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} id grade id
      * @param {*} studentId id of the student
      * @param {*} courseId id of the course
@@ -104,13 +107,7 @@ class PrototypeContract extends Contract {
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         const userId = ctx.clientIdentity.getAttributeValue(ENROLLMENT_ID_ATTRIBUTE);
         if (role !== TEACHER_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
-        }
-
-        // check if course exist
-        const exists = await helper.AssetExists(ctx, courseId);
-        if (!exists) {
-            throw new Error(`The course ${courseId} does not exist`);
+            throw new Error('Only teachers can add grades');
         }
 
         // get course
@@ -118,17 +115,17 @@ class PrototypeContract extends Contract {
 
         // check if course is active
         if (!course.Active) {
-            throw new Error(`You are not allowed to add grades for inactive courses`);
+            throw new Error('You are not allowed to add grades for inactive courses');
         }
 
         // check if user is teaching the course
         if (course.Teacher !== userId) {
-            throw new Error(`You are only allowed to add grades for courses you teach`);
+            throw new Error('You are only allowed to add grades for courses you teach');
         }
 
         // check if student is registered in the course
         if (course.Students.indexOf(studentId) === -1) {
-            throw new Error(`The student ${studentId} is not registered in the course ${courseId}`);
+            throw new Error(`The student '${studentId}' is not registered in the course '${courseId}'`);
         }
 
         // add grade
@@ -142,12 +139,14 @@ class PrototypeContract extends Contract {
 			Type: type
         };
         logger.info(`Adding grade: ${JSON.stringify(grade)}`);
-        return await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
+        await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
     }
 
     /**
      * Edit a grade
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} id grade id
      * @param {*} value grade value (0.0 to 6.0)
      * @param {*} weight grade weight (0.1 to 1.0)
@@ -159,13 +158,7 @@ class PrototypeContract extends Contract {
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         const userId = ctx.clientIdentity.getAttributeValue(ENROLLMENT_ID_ATTRIBUTE);
         if (role !== TEACHER_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
-        }
-
-        // check if grade exist
-        const exists = await helper.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The grade ${id} does not exist`);
+            throw new Error('Only teachers can edit grades');
         }
 
         // get current grade
@@ -176,12 +169,12 @@ class PrototypeContract extends Contract {
 
         // check if course is active
         if (!course.Active) {
-            throw new Error(`You are not allowed to edit grades for inactive courses`);
+            throw new Error('You are not allowed to edit grades for inactive courses');
         }
 
         // check if user is teaching the course
         if (course.Teacher !== userId) {
-            throw new Error(`You are only allowed to edit grades for courses you teach`);
+            throw new Error('You are only allowed to edit grades for courses you teach');
         }
 
         // update grade
@@ -195,20 +188,23 @@ class PrototypeContract extends Contract {
 			Type: type
         };
         logger.info(`Updating grade: ${JSON.stringify(updatedGrade)}`);
-        return await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedGrade)));
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedGrade)));
 	}
 
     /**
      * Check if a user is referenced in the ledger, as student or teacher
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} userId the id of the student or teacher
+     * @returns {Promise<Object>} an object describing if (and how/where) a user is referenced
      */
     async CheckIfUserIsReferenced(ctx, userId) {
 
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         if (role !== SECRETARIAT_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
+            throw new Error('Only secretariat users are allowed to check references');
         }
 
         // check if user is a registered student
@@ -219,10 +215,10 @@ class PrototypeContract extends Contract {
         }
 
         // check if user teaches a course
-        let assets = await helper.QueryCoursesByTeacher(ctx, userId);
-        if (assets.length > 0) {
-            logger.info(`Teacher references found: ${JSON.stringify(assets)}`);
-            return { isReferenced: true, referenceType: TEACHER_ROLE, references: assets.map(a => a.Key) };
+        let courses = await helper.QueryCoursesByTeacher(ctx, userId);
+        if (courses.length > 0) {
+            logger.info(`Teacher references found: ${JSON.stringify(courses)}`);
+            return { isReferenced: true, referenceType: TEACHER_ROLE, references: courses.map(a => a.ID) };
         }
 
         return { isReferenced: false };
@@ -231,7 +227,10 @@ class PrototypeContract extends Contract {
     /**
      * List all courses
      * The courses returned depend on the identity of the caller
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
+     * @returns {Promise<Object[]>} a list of courses
      */
     async ListCourses(ctx) {
 
@@ -248,8 +247,7 @@ class PrototypeContract extends Contract {
         }
         else if (role === TEACHER_ROLE) {
             // return only courses having the calling user as teacher
-            let assets = await helper.QueryCoursesByTeacher(ctx, userId);
-            courses = assets.map(a => a.Record);
+            courses = await helper.QueryCoursesByTeacher(ctx, userId);
         }
         else {
             // return only courses having the calling user as student
@@ -259,10 +257,10 @@ class PrototypeContract extends Contract {
             for (const assetKey of assetKeys) {
 
                 // get the course key
-                let objectType;
                 let attributes;
+                let objectType;
                 (
-                    {objectType, attributes} = await ctx.stub.splitCompositeKey(assetKey)
+                    { objectType , attributes } = await ctx.stub.splitCompositeKey(assetKey)
                 );
                 let courseKey = attributes[1];
 
@@ -279,20 +277,17 @@ class PrototypeContract extends Contract {
 
     /**
      * Return a specific course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} id the id of the course to return
+     * @returns {Promise<Object>} a course
      */
     async GetCourse(ctx, id) {
 
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         const userId = ctx.clientIdentity.getAttributeValue(ENROLLMENT_ID_ATTRIBUTE);
-
-        // check if course exist
-        const exists = await helper.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The course ${id} does not exist`);
-        }
 
         // get course
         let course = await helper.ReadAsset(ctx, id);
@@ -301,11 +296,11 @@ class PrototypeContract extends Contract {
 
         // teachers can only see courses they teach
         if (role === TEACHER_ROLE && course.Teacher !== userId) {
-            throw new Error(`You are only allowed to see courses you teach`);
+            throw new Error('You are only allowed to see courses you teach');
         }
         // students can only see their courses
         else if (role === STUDENT_ROLE && course.Students.indexOf(userId) === -1) {
-            throw new Error(`You are only allowed to access courses that you are registered to`);
+            throw new Error('You are only allowed to access courses that you are registered to');
         }
 
         return course;
@@ -313,7 +308,9 @@ class PrototypeContract extends Contract {
 
     /**
      * Add a new course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} acronym course acronym (e.g. MLG)
      * @param {*} name course name (e.g. Machine Learning)
      * @param {*} year year the course starts (e.g. 2020)
@@ -324,12 +321,21 @@ class PrototypeContract extends Contract {
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         if (role !== SECRETARIAT_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
+            throw new Error('Only secretariat users can add courses');
+        }
+
+        // generate course id
+        const id = acronym + '_' + year;
+
+        // check if course already exist
+        const exists = await helper.AssetExists(ctx, id);
+        if (exists) {
+            throw new Error(`The course '${id}' exists already`);
         }
 
         // add course
         const course = {
-            ID: acronym + '_' + year,
+            ID: id,
             docType: COURSE_TYPE,
             Acronym: acronym,
             Year: year,
@@ -339,12 +345,14 @@ class PrototypeContract extends Contract {
             Active: false,
         };
         logger.info(`Adding course: ${JSON.stringify(course)}`);
-        return await ctx.stub.putState(course.ID, Buffer.from(JSON.stringify(course)));
+        await ctx.stub.putState(course.ID, Buffer.from(JSON.stringify(course)));
     }
 
     /**
      * Enables a course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} id id of the course to enable
      */
     async EnableCourse(ctx, id) {
@@ -352,13 +360,7 @@ class PrototypeContract extends Contract {
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         if (role !== SECRETARIAT_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
-        }
-
-        // check if course exist
-        const exists = await helper.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The course ${id} does not exist`);
+            throw new Error('Only secretariat users can enable courses');
         }
 
         // get current course
@@ -376,12 +378,14 @@ class PrototypeContract extends Contract {
             Active: true,
         }
         logger.info(`Enabling course: ${JSON.stringify(updatedCourse)}`);
-        return await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
     }
 
     /**
      * Disables a course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} id id of the course to enable
      */
     async DisableCourse(ctx, id) {
@@ -389,13 +393,7 @@ class PrototypeContract extends Contract {
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         if (role !== SECRETARIAT_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
-        }
-
-        // check if course exist
-        const exists = await helper.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The course ${id} does not exist`);
+            throw new Error('Only secretariat users can disable courses');
         }
 
         // get current course
@@ -413,12 +411,14 @@ class PrototypeContract extends Contract {
             Active: false,
         }
         logger.info(`Disabling course: ${JSON.stringify(updatedCourse)}`);
-        return await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedCourse)));
     }
 
     /**
      * Register a student for a course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} courseId id of the course
      * @param {*} studentId id of the student to register
      */
@@ -427,13 +427,7 @@ class PrototypeContract extends Contract {
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         if (role !== SECRETARIAT_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
-        }
-
-        // check if course exist
-        const exists = await helper.AssetExists(ctx, courseId);
-        if (!exists) {
-            throw new Error(`The course ${courseId} does not exist`);
+            throw new Error('Only secretariat users can register students');
         }
 
         // get current course
@@ -441,10 +435,10 @@ class PrototypeContract extends Contract {
 
         // check if student is registered
         if (course.Students.indexOf(studentId) !== -1) {
-            throw new Error(`The student ${studentId} is already registered`);
+            throw new Error(`The student '${studentId}' is already registered`);
         }
 
-        logger.info(`Registering student ${studentId} for course ${courseId}`);
+        logger.info(`Registering student '${studentId}' for course '${courseId}'`);
 
         // update course
         let students = course.Students.slice();
@@ -470,7 +464,9 @@ class PrototypeContract extends Contract {
 
     /**
      * Unregister a student from a course
-     * @param {*} ctx context
+     *
+     * @async
+     * @param {Context} ctx context
      * @param {*} courseId id of the course
      * @param {*} studentId id of the student to unregister
      */
@@ -479,13 +475,7 @@ class PrototypeContract extends Contract {
         // check role
         const role = ctx.clientIdentity.getAttributeValue(ROLE_ATTRIBUTE);
         if (role !== SECRETARIAT_ROLE) {
-            throw new Error(`Your role (${role}) does not allow you to perform this action`);
-        }
-
-        // check if course exist
-        const exists = await helper.AssetExists(ctx, courseId);
-        if (!exists) {
-            throw new Error(`The course ${courseId} does not exist`);
+            throw new Error('Only secretariat users can unregister students');
         }
 
         // get current course
@@ -493,10 +483,10 @@ class PrototypeContract extends Contract {
 
         // check if student is registered
         if (course.Students.indexOf(studentId) === -1) {
-            throw new Error(`The student ${studentId} is not registered`);
+            throw new Error(`The student '${studentId}' is not registered`);
         }
 
-        logger.info(`Unregistering student ${studentId} from course ${courseId}`);
+        logger.info(`Unregistering student '${studentId}' from course '${courseId}'`);
 
         // update course
         let students = course.Students.filter(s => s !== studentId);
@@ -519,7 +509,12 @@ class PrototypeContract extends Contract {
 		await helper.DeleteAsset(ctx, compositeKey);
     }
 
-    // chaincode initialization with sample data
+    /**
+     * chaincode initialization with sample data
+     *
+     * @async
+     * @param {Context} ctx context
+     */
     async InitLedger(ctx) {
 
         // sample courses initialization
@@ -535,7 +530,7 @@ class PrototypeContract extends Contract {
                 await ctx.stub.putState(compositeKey, Buffer.from('\u0000'));
             }
 
-            logger.info(`Course ${course.ID} initialized`);
+            logger.info(`Course '${course.ID}' initialized`);
         }
 
         // sample grades initialization
@@ -545,7 +540,7 @@ class PrototypeContract extends Contract {
             grade.docType = GRADE_TYPE;
             await ctx.stub.putState(grade.ID, Buffer.from(JSON.stringify(grade)));
 
-            logger.info(`Grade ${grade.ID} initialized`);
+            logger.info(`Grade '${grade.ID}' initialized`);
         }
     }
 }

@@ -8,35 +8,43 @@ const { COURSE_TYPE, GRADE_TYPE } = require('./constants');
  */
 
 /**
- * Read an asset
- * @param {*} ctx context
- * @param {*} key asset key
+ * Get an asset
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} key asset key
+ * @returns {Promise<Object>} the asset object
  */
 exports.ReadAsset = async (ctx, key) => {
     const assetJSON = await ctx.stub.getState(key);
     if (!assetJSON || assetJSON.length === 0) {
-        throw new Error(`The asset ${key} does not exist`);
+        throw new Error(`The asset '${key}' does not exist`);
     }
     return JSON.parse(assetJSON.toString());
 };
 
 /**
  * Delete an asset
- * @param {*} ctx context
- * @param {*} key asset key
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} key asset key
  */
 exports.DeleteAsset = async (ctx, key) => {
     const exists = await AssetExists(ctx, key);
     if (!exists) {
-        throw new Error(`The asset ${key} does not exist`);
+        throw new Error(`The asset '${key}' does not exist`);
     }
-    return ctx.stub.deleteState(key);
+    await ctx.stub.deleteState(key);
 }
 
 /**
  * Check if an asset exist
- * @param {*} ctx context
- * @param {*} key asset key
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} key asset key
+ * @returns {Promise<boolean>} true if the asset exists, false otherwise
  */
 exports.AssetExists = async (ctx, key) => {
     const assetJSON = await ctx.stub.getState(key);
@@ -45,9 +53,12 @@ exports.AssetExists = async (ctx, key) => {
 
 /**
  * Returns composite asset keys
- * @param {*} ctx context
- * @param {*} compositeKey the name of the composite key
- * @param {*} partialKeyItems an array of partial keys
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} compositeKey the name of the composite key
+ * @param {string[]} partialKeyItems an array of partial keys
+ * @returns {Promise<string[]>} a list of asset keys
  */
 exports.GetAssetKeysByPartialKey = async (ctx, compositeKey, partialKeyItems) => {
     const allResults = [];
@@ -62,8 +73,11 @@ exports.GetAssetKeysByPartialKey = async (ctx, compositeKey, partialKeyItems) =>
 
 /**
  * Get all assets for a given docType
- * @param {*} ctx context
- * @param {*} docType the docType value
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} docType the docType value
+ * @returns {Promise<Object[]>} a list of asset key/value pairs
  */
 exports.QueryAssetsByDocType = async (ctx, docType) => {
     let queryString = {};
@@ -74,34 +88,45 @@ exports.QueryAssetsByDocType = async (ctx, docType) => {
 
 /**
  * Get courses for a teacher
- * @param {*} ctx context
- * @param {*} teacher the id of the teacher
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} teacher the id of the teacher
+ * @returns {Promise<Object[]>} a list of course key/value pairs
  */
 exports.QueryCoursesByTeacher = async (ctx, teacher) => {
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = COURSE_TYPE;
     queryString.selector.Teacher = teacher;
-    return await GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    let results = await GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    return results.map(r => r.Record);
 };
 
 /**
  * Get grades for a student
- * @param {*} ctx context
- * @param {*} student the id of the teacher
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {string} student the id of the teacher
+ * @returns {Promise<Object[]>} a list of grades
  */
 exports.QueryGradesByStudent = async (ctx, student) => {
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = GRADE_TYPE;
     queryString.selector.Student = student;
-    return await GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    let results = await GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    return results.map(r => r.Record);
 }
 
 /**
  * Get assets for a CouchBD querystring
- * @param {*} ctx context
- * @param {*} queryString the querystring
+ *
+ * @async
+ * @param {Context} ctx context
+ * @param {Object} queryString the querystring
+ * @returns {Promise<Object[]>} a list of asset key/value pairs
  */
 async function GetQueryResultForQueryString(ctx, queryString) {
     let resultsIterator = await ctx.stub.getQueryResult(queryString);
@@ -110,8 +135,11 @@ async function GetQueryResultForQueryString(ctx, queryString) {
 
 /**
  * Get all assets for a given iterator
- * @param {*} iterator the iterator
- * @param {*} isHistory true to include the asset history, false otherwise
+ *
+ * @async
+ * @param {StateQueryIterator} iterator the iterator
+ * @param {boolean} isHistory true to include the asset history, false otherwise
+ * @returns {Promise<Object[]>} a list of asset key/value pairs
  */
 async function GetAllResults(iterator, isHistory) {
     let allResults = [];
