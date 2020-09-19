@@ -121,7 +121,7 @@ var gradeRouter = function (caClient, wallet, gateway) {
             const uuid = uuidv4();
             await contract.submitTransaction('AddGrade', uuid, req.params.studentId, req.params.courseId, req.body.value, req.body.weight, req.body.type);
 
-            res.redirect('/courses/' + req.params.courseId);
+            res.redirect('/grades/' + req.params.studentId);
         }
         catch (error) {
             res.render('error', { error: error });
