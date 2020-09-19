@@ -89,7 +89,7 @@ exports.listTeachers = async (caClient, wallet) => {
  * @async
  * @param {FabricCAServices} caClient certification authority client
  * @param {Wallet} wallet identity wallet
- * @param {string} orgMspId name of the organization
+ * @param {string} orgMspId Hyperledger Fabric organization name
  * @param {string} username the username
  * @param {string} password the passord
  * @returns {Promise<Object>} the enrolled user

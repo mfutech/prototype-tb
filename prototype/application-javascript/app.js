@@ -1,25 +1,62 @@
 'use strict';
 
+/**
+ * Main application
+ */
+
 const { Gateway } = require('fabric-network');
 const { enrollAdmin } = require('./utils/CAUtil.js');
 const { enrollUser, addStudent, addTeacher, addSecretariat } = require('./utils/users');
 const { getCaClient, getContract, initWallet } = require('./utils/network');
 
+/**
+ * Hyperledger Fabric organization name
+ */
 const mspOrg1 = 'Org1MSP';
 
+/**
+ * Wallet to store the application users
+ */
+let wallet = undefined
+
+/**
+ * Client to interact with the Hyperledger Fabric certification authority
+ */
+const caClient = getCaClient();
+
+/**
+ * Gateway instance for interacting with the Hyperledger Fabric network
+ */
+const gateway = new Gateway();
+
+/**
+ * Express.js and session configuration
+ */
 const express = require('express')
 var session = require("express-session")
 const app = express()
+const port = 3000
+
 app.use(session({
 	secret: 'blockchain :)',
 	saveUninitialized: false,
 	resave: false
 }));
-const port = 3000
 
+app.use(express.static('public'));
+app.use(express.urlencoded({
+	extended: true
+}));
+
+/**
+ * Flash message configuration for authentication failures
+ */
 var flash = require('connect-flash');
 app.use(flash());
 
+/**
+ * Passport.js configuration
+ */
 var passport = require('passport')
 	, LocalStrategy = require('passport-local').Strategy;
 app.use(passport.initialize());
@@ -44,25 +81,14 @@ passport.deserializeUser(function (user, done) {
 	done(null, user);
 });
 
-app.use(express.static('public'));
-app.use(express.urlencoded({
-	extended: true
-}));
-
+/**
+ * EJS view engine configuration
+ */
 app.set('view engine', 'ejs');
 
-// the wallet to hold the credentials of the application users
-let wallet = undefined
-
-// build an instance of the fabric ca services client based on
-// the information in the network configuration
-const caClient = getCaClient();
-
-// Create a new gateway instance for interacting with the fabric network.
-// In a real application this would be done as the backend server session is setup for
-// a user that has been verified.
-const gateway = new Gateway();
-
+/**
+ * Home page
+ */
 app.get('/', (req, res) => {
 	if (!req.isAuthenticated()) {
 		res.redirect('/login');
@@ -72,11 +98,18 @@ app.get('/', (req, res) => {
 	res.render('index');
 })
 
+/**
+ * Login page
+ */
 app.get('/login', (req, res) => {
+	// add authentication error (if any)
 	res.locals.error = req.flash('error');
 	res.render('login');
 })
 
+/**
+ * Authentication request
+ */
 app.post('/login',
 	passport.authenticate('local', {
 		successRedirect: '/',
@@ -85,64 +118,66 @@ app.post('/login',
 	})
 );
 
+/**
+ * Logout
+ */
 app.get('/logout', (req, res) => {
 	req.logout();
 	res.redirect('/login');
 });
 
-app.listen(port, () => {
-	console.log(`Listening at http://localhost:${port}`)
-})
-
+/**
+ * Main
+ */
 async function main() {
-	try {
-		// initialize the wallet
-		wallet = await initWallet();
 
-		// enroll admin
-		await enrollAdmin(caClient, wallet, mspOrg1);
+	// initialize the wallet
+	wallet = await initWallet();
 
-		// register secretariat user
-		await addSecretariat(caClient, wallet, 'secretariat@heig-vd.ch', 'Pass123', 'Secretariat', 'HEIG-VD');
+	// enroll admin
+	await enrollAdmin(caClient, wallet, mspOrg1);
 
-		// register sample professors
-		await addTeacher(caClient, wallet, 'minnie.mouse@heig-vd.ch', 'Pass123', 'Minnie', 'Mouse');
-		await addTeacher(caClient, wallet, 'daisy.duck@heig-vd.ch', 'Pass123', 'Daisy', 'Duck');
-		await addTeacher(caClient, wallet, 'mulan.fa@heig-vd.ch', 'Pass123', 'Mulan', 'Fa');
-		await addTeacher(caClient, wallet, 'snow.white@heig-vd.ch', 'Pass123', 'Snow', 'White');
-		await addTeacher(caClient, wallet, 'tinker.bell@heig-vd.ch', 'Pass123', 'Tinker', 'Bell');
+	// register secretariat user
+	await addSecretariat(caClient, wallet, 'secretariat@heig-vd.ch', 'Pass123', 'Secretariat', 'HEIG-VD');
 
-		// register sample students
-		await addStudent(caClient, wallet, 'amel.dussier@heig-vd.ch', 'Pass123', 'Amel', 'Dussier');
-		await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', 'Pass123', 'Elyas', 'Dussier');
-		await addStudent(caClient, wallet, 'jade.dussier@heig-vd.ch', 'Pass123', 'Jade', 'Dussier');
+	// register sample professors
+	await addTeacher(caClient, wallet, 'minnie.mouse@heig-vd.ch', 'Pass123', 'Minnie', 'Mouse');
+	await addTeacher(caClient, wallet, 'daisy.duck@heig-vd.ch', 'Pass123', 'Daisy', 'Duck');
+	await addTeacher(caClient, wallet, 'mulan.fa@heig-vd.ch', 'Pass123', 'Mulan', 'Fa');
+	await addTeacher(caClient, wallet, 'snow.white@heig-vd.ch', 'Pass123', 'Snow', 'White');
+	await addTeacher(caClient, wallet, 'tinker.bell@heig-vd.ch', 'Pass123', 'Tinker', 'Bell');
 
-		// get smart contract
-		const contract = await getContract('admin');
+	// register sample students
+	await addStudent(caClient, wallet, 'amel.dussier@heig-vd.ch', 'Pass123', 'Amel', 'Dussier');
+	await addStudent(caClient, wallet, 'elyas.dussier@heig-vd.ch', 'Pass123', 'Elyas', 'Dussier');
+	await addStudent(caClient, wallet, 'jade.dussier@heig-vd.ch', 'Pass123', 'Jade', 'Dussier');
 
-		// chaincode initialization
-		await contract.submitTransaction('InitLedger');
-		console.log('Chaincode initialization done');
+	// get smart contract
+	const contract = await getContract('admin');
 
-		// course router
-		var courseRouter = require('./routes/courses');
-		app.use('/courses', courseRouter(caClient, wallet, gateway));
+	// chaincode initialization
+	await contract.submitTransaction('InitLedger');
+	console.log('Chaincode initialization done');
 
-		// teacher router
-		var teacherRouter = require('./routes/teachers');
-		app.use('/teachers', teacherRouter(caClient, wallet, gateway));
+	// course router
+	var courseRouter = require('./routes/courses');
+	app.use('/courses', courseRouter(caClient, wallet, gateway));
 
-		// student router
-		var studentRouter = require('./routes/students');
-		app.use('/students', studentRouter(caClient, wallet, gateway));
+	// teacher router
+	var teacherRouter = require('./routes/teachers');
+	app.use('/teachers', teacherRouter(caClient, wallet, gateway));
 
-		// grade router
-		var gradeRouter = require('./routes/grades');
-		app.use('/grades', gradeRouter(caClient, wallet, gateway));
+	// student router
+	var studentRouter = require('./routes/students');
+	app.use('/students', studentRouter(caClient, wallet, gateway));
 
-	} catch (error) {
-		console.error(error);
-	}
+	// grade router
+	var gradeRouter = require('./routes/grades');
+	app.use('/grades', gradeRouter(caClient, wallet, gateway));
+
+	// start web server
+	app.listen(port, () => {
+		console.log(`Listening at http://localhost:${port}`)
+	})
 }
-
 main();
