@@ -30,7 +30,7 @@ var teacherRouter = function (caClient, wallet, gateway) {
     /**
      * List all teachers
      */
-    router.get('/', async (_, res) => {
+    router.get('/', async (req, res) => {
         try {
             // check role
             if (req.user.role !== 'secretariat') {
@@ -48,7 +48,7 @@ var teacherRouter = function (caClient, wallet, gateway) {
     /**
      * Redirect to the add student form
      */
-    router.get('/add', (_, res) => {
+    router.get('/add', (req, res) => {
         // check role
         if (req.user.role !== 'secretariat') {
             res.render('error', { error: new Error('You are not allowed to access this page')});
