@@ -13,12 +13,15 @@
 
         <form action="/grades/edit/<%= grade.ID %>" id="form" method="POST">
 
+            <!-- course -->
             <div class="form-group row justify-content-md-center">
                 <label for="value" class="col-sm-2 col-form-label">Course</label>
                 <div class="col-sm-6">
                     <input type="text" class="form-control" id="course" value="<%= course.Name %> <%= course.Year %>" disabled>
                 </div>
             </div>
+
+            <!-- student -->
             <div class="form-group row justify-content-md-center">
                 <label for="student" class="col-sm-2 col-form-label">Student</label>
                 <div class="col-sm-6">
@@ -26,18 +29,24 @@
                 </div>
             </div>
             <input type="hidden" value="<%= student.username %>" name="studentId">
+
+            <!-- grade value -->
             <div class="form-group row justify-content-md-center">
                 <label for="value" class="col-sm-2 col-form-label">Value</label>
                 <div class="col-sm-6">
                     <input type="number" class="form-control" value="<%= grade.Value %>" min="0" max="6" step="0.1" id="value" name="value" required>
                 </div>
             </div>
+
+            <!-- grade weight -->
             <div class="form-group row justify-content-md-center">
                 <label for="weight" class="col-sm-2 col-form-label">Weight</label>
                 <div class="col-sm-6">
                     <input type="number" class="form-control" value="<%= grade.Weight %>" min="0" max="1" step="0.05" id="weight" name="weight" required>
                 </div>
             </div>
+
+            <!-- grade type -->
             <div class="form-group row justify-content-md-center">
                 <label for="type" class="col-sm-2 col-form-label">Type</label>
                 <div class="col-sm-6">
@@ -48,6 +57,8 @@
                       </select>
                 </div>
             </div>
+
+            <!-- submit button -->
             <div class="form-group row">
                 <div class="col-sm-10">
                     <button type="submit" onClick="loading(this);" class="btn btn-success float-right">Save</button>

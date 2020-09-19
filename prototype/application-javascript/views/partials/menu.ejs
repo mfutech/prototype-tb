@@ -1,27 +1,49 @@
 <nav class="navbar navbar-dark bg-dark navbar-expand">
-  <a class="navbar-brand" href="/">Blockchain prototype</a>
-  <ul class="navbar-nav pl-3 mr-auto">
-    <% if (locals.user.role === "secretariat") { %>
-    <li class="nav-item">
-      <a class="nav-link" href="/courses">Courses</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/teachers">Teachers</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/students">Students</a>
-    </li>
-    <% } else { %>
-    <li class="nav-item">
-      <a class="nav-link" href="/courses">My courses</a>
-    </li>
+    <!-- home link -->
+    <a class="navbar-brand" href="/">Blockchain prototype</a>
+
+    <!-- display menu items only for authenticated users -->
+    <% if (locals.user !== undefined) { %>
+
+        <!-- page links -->
+        <ul class="navbar-nav pl-3 mr-auto">
+
+            <!-- links for secretariat users -->
+            <% if (locals.user.role === "secretariat") { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses">Courses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teachers">Teachers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/students">Students</a>
+                </li>
+            <% } %>
+
+            <!-- links for teachers -->
+            <% if (locals.user.role === "teacher") { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses">My courses</a>
+                </li>
+            <% } %>
+
+            <!-- links for students -->
+            <% if (locals.user.role === "student") { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses">My courses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/grades/<%= locals.user.username %>">My grades</a>
+                </li>
+            <% } %>
+        </ul>
+
+        <!-- current user name -->
+        <span class="navbar-text"><%= locals.user.firstname %> <%= locals.user.lastname %></span>
+
+        <!-- logout link -->
+        <a class="nav-link" href="/logout">Logout</a>
+
     <% } %>
-    <% if (locals.user.role === "student") { %>
-    <li class="nav-item">
-      <a class="nav-link" href="/grades/<%= locals.user.username %>">My grades</a>
-    </li>
-    <% } %>
-  </ul>
-  <span class="navbar-text"><%= locals.user.firstname %> <%= locals.user.lastname %></span>
-  <a class="nav-link" href="/logout">Logout</a>
 </nav>

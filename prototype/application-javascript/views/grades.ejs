@@ -9,115 +9,109 @@
     <%- include('partials/menu') %>
 
     <div class="container">
+
+        <!-- title -->
         <% if (locals.user.role === "student") { %>
             <h1 class="py-5">My grades</h1>
-
-            <h2 class="pb-4">Current courses</h2>
-            <% for(var i = 0; i < courses.length; i++) { %>
-                <% if (courses[i].Active) { %>
-                    <h3><%= courses[i].Name %> <%= courses[i].Year %></h3>
-                    <table class="table table-sm mb-5">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th scope="col">Type</th>
-                                <th scope="col">Weight</th>
-                                <th scope="col">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-striped">
-                            <% for(var j = 0; j < courses[i].grades.length; j++) { %>
-                            <tr>
-                                <td><%= courses[i].grades[j].Type %></td>
-                                <td><%= courses[i].grades[j].Weight %></td>
-                                <td><b><%= courses[i].grades[j].Value %></b></td>
-                            </tr>
-                            <% } %>
-
-                            <tr>
-                                <td>Average</td>
-                                <td></td>
-                                <td><b><%= courses[i].average %></b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                <% } %>
-            <% } %>
-
-            <h2 class="pb-4">Past courses</h2>
-            <% for(var i = 0; i < courses.length; i++) { %>
-                <% if (!courses[i].Active) { %>
-                    <h3><%= courses[i].Name %> <%= courses[i].Year %></h3>
-                    <table class="table table-sm mb-5">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th scope="col">Type</th>
-                                <th scope="col">Weight</th>
-                                <th scope="col">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-striped">
-                            <% for(var j = 0; j < courses[i].grades.length; j++) { %>
-                            <tr>
-                                <td><%= courses[i].grades[j].Type %></td>
-                                <td><%= courses[i].grades[j].Weight %></td>
-                                <td><b><%= courses[i].grades[j].Value %></b></td>
-                            </tr>
-                            <% } %>
-
-                            <tr>
-                                <td>Average</td>
-                                <td></td>
-                                <td><b><%= courses[i].average %></b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                <% } %>
-            <% } %>
         <% } else { %>
             <h1 class="py-5">Grades for <%= student.firstname %> <%= student.lastname %></h1>
+        <% } %>
 
-            <% for(var i = 0; i < courses.length; i++) { %>
-                <h2><%= courses[i].Name %> <%= courses[i].Year %></h2>
+        <!-- active courses -->
+        <h2 class="pb-4">Current courses</h2>
+        <% for(var i = 0; i < courses.length; i++) { %>
+            <% if (courses[i].Active) { %>
+                <h3><%= courses[i].Name %> <%= courses[i].Year %></h3>
                 <table class="table table-sm mb-5">
                     <thead class="thead-dark">
                         <tr>
                             <th scope="col">Type</th>
                             <th scope="col">Weight</th>
                             <th scope="col">Value</th>
-                            <% if (locals.user.role === "teacher") { %>
-                                <th></th>
-                            <% } %>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody class="table-striped">
+
+                        <!-- list of grades for course -->
                         <% for(var j = 0; j < courses[i].grades.length; j++) { %>
                         <tr>
                             <td><%= courses[i].grades[j].Type %></td>
                             <td><%= courses[i].grades[j].Weight %></td>
                             <td><b><%= courses[i].grades[j].Value %></b></td>
-                            <% if (locals.user.role === "teacher") { %>
-                                <td>
-                                    <a href="/grades/edit/<%= courses[i].grades[j].ID %>" class="btn btn-outline-warning btn-sm float-right">Change</a>
-                                </td>
-                            <% } %>
+
+                            <!-- edit grade button -->
+                            <td>
+                                <a href="/grades/edit/<%= courses[i].grades[j].ID %>" class="btn btn-outline-warning btn-sm float-right">Change</a>
+                            </td>
                         </tr>
                         <% } %>
 
+                        <!-- average grade -->
                         <tr>
                             <td>Average</td>
                             <td></td>
                             <td><b><%= courses[i].average %></b></td>
                         </tr>
 
-                        <% if (locals.user.role === "teacher") { %>
-                            <tr>
-                                <td colspan="4">
-                                    <button type="button" class="btn btn-primary btn-sm float-right" onClick="loading(this, '/grades/<%= student.username %>/add/<%= courses[i].ID %>');">
-                                        Add grade
-                                    </button>
-                                </td>
-                            </tr>
+                        <!-- add grade button -->
+                        <tr>
+                            <td colspan="4">
+                                <button type="button" class="btn btn-primary btn-sm float-right" onClick="loading(this, '/grades/<%= student.username %>/add/<%= courses[i].ID %>');">
+                                    Add grade
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            <% } %>
+        <% } %>
+
+        <!-- inactive courses -->
+        <h2 class="pb-4">Past courses</h2>
+        <% for(var i = 0; i < courses.length; i++) { %>
+            <% if (!courses[i].Active) { %>
+                <h3><%= courses[i].Name %> <%= courses[i].Year %></h3>
+                <table class="table table-sm mb-5">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Type</th>
+                            <th scope="col">Weight</th>
+                            <th scope="col">Value</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-striped">
+
+                        <!-- list of grades for course -->
+                        <% for(var j = 0; j < courses[i].grades.length; j++) { %>
+                        <tr>
+                            <td><%= courses[i].grades[j].Type %></td>
+                            <td><%= courses[i].grades[j].Weight %></td>
+                            <td><b><%= courses[i].grades[j].Value %></b></td>
+
+                            <!-- edit grade button -->
+                            <td>
+                                <a href="/grades/edit/<%= courses[i].grades[j].ID %>" class="btn btn-outline-warning btn-sm float-right">Change</a>
+                            </td>
+                        </tr>
                         <% } %>
+
+                        <!-- average grade -->
+                        <tr>
+                            <td>Average</td>
+                            <td></td>
+                            <td><b><%= courses[i].average %></b></td>
+                        </tr>
+
+                        <!-- add grade button -->
+                        <tr>
+                            <td colspan="4">
+                                <button type="button" class="btn btn-primary btn-sm float-right" onClick="loading(this, '/grades/<%= student.username %>/add/<%= courses[i].ID %>');">
+                                    Add grade
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             <% } %>

@@ -11,55 +11,52 @@
     <div class="container mt-5">
         <h1><%= course.Name %> <%= course.Year %></h1>
 
+        <!-- teacher details -->
         <h2 class="pt-4">Teacher</h2>
-        <%= teacher.firstname %> <%= teacher.lastname %> (<%= teacher.username %>)
+        <p><%= teacher.firstname %> <%= teacher.lastname %> (<%= teacher.username %>)</p>
 
+        <!-- list of students -->
         <h2 class="pt-4">Students</h2>
         <table class="table table-sm">
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">Name</th>
                     <th scope="col">Email</th>
-                    <% if (locals.user.role !== "student") { %>
-                        <th></th>
-                    <% } %>
+                    <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody class="table-striped">
                 <% for(var i = 0; i < students.length; i++) { %>
                 <tr>
-                    <td>
-                        <a class="btn btn-link" href="/grades/<%= students[i].username %>">
-                            <%= students[i].firstname %> <%= students[i].lastname %></td>
-                        </a>
-                    <td><%= students[i].username %></td>
-                    <% if (locals.user.role === "secretariat") { %>
-                        <td>
-                            <button type="button" class="btn btn-outline-danger btn-sm float-right"
-                                onClick="loading(this, '/courses/<%= course.ID %>/unregister/<%= students[i].username %>');">Unregister</button>
-                        </td>
-                    <% } else if (course.Active && locals.user.role === "teacher") { %>
-                        <td>
-                            <button type="button" class="btn btn-primary btn-sm float-right"
-                                onClick="loading(this, '/grades/<%= students[i].username %>/add/<%= course.ID %>');">Add grade</button>
-                        </td>
-                    <% } %>
+                    <td class="align-middle"><%= students[i].firstname %> <%= students[i].lastname %></td>
+                    <td class="align-middle"><%= students[i].username %></td>
+
+                    <!-- student grades link -->
+                    <td class="align-middle">
+                        <a class="btn btn-link" href="/grades/<%= students[i].username %>">See grades</a>
+                    </td>
+
+                    <!-- unregister student button -->
+                    <td class="align-middle">
+                        <button type="button" class="btn btn-outline-danger btn-sm float-right"
+                            onClick="loading(this, '/courses/<%= course.ID %>/unregister/<%= students[i].username %>');">Unregister</button>
+                    </td>
                 </tr>
                 <% } %>
             </tbody>
         </table>
 
-        <% if (locals.user.role === "secretariat") { %>
-            <div class="float-right mt-5">
-                <form id="form" action="/courses/<%= course.ID %>/register" method="POST" class="form-inline">
-                    <div class="form-group">
-                        <label for="username" class="sr-only">Username</label>
-                        <input type="email" class="form-control" id="username" name="username" placeholder="Email">
-                    </div>
-                    <button type="submit" class="btn btn-primary ml-3" onClick="loading(this);">Register student</button>
-                </form>
-            </div>
-        <% } %>
+        <!-- register student form -->
+        <div class="float-right mt-5">
+            <form id="form" action="/courses/<%= course.ID %>/register" method="POST" class="form-inline">
+                <div class="form-group">
+                    <label for="username" class="sr-only">Username</label>
+                    <input type="email" class="form-control" id="username" name="username" placeholder="Email">
+                </div>
+                <button type="submit" class="btn btn-primary ml-3" onClick="loading(this);">Register student</button>
+            </form>
+        </div>
     </div>
 
     <%- include('partials/script') %>

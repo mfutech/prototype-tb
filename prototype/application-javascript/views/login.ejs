@@ -6,10 +6,9 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark navbar-expand">
-        <a class="navbar-brand" href="/">Blockchain prototype</a>
-    </nav>
+    <%- include('partials/menu') %>
 
+    <!-- display login error message -->
     <% if (locals.error != '') { %>
         <div class="alert alert-danger text-center" role="alert">
             <%= error %>
@@ -19,6 +18,7 @@
     <div class="container">
         <h1 class="py-5">Login</h1>
 
+        <!-- login form -->
         <form action="/login" method="POST">
             <div class="form-group row justify-content-md-center">
                 <label for="username" class="col-sm-2 col-form-label">Username</label>

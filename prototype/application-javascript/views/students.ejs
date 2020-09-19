@@ -11,6 +11,7 @@
     <div class="container">
         <h1 class="py-5">Students</h1>
 
+        <!-- list of students -->
         <table class="table table-sm">
             <thead class="thead-dark">
                 <tr>
@@ -18,23 +19,34 @@
                     <th scope="col">Last name</th>
                     <th scope="col">Email</th>
                     <th scope="col"></th>
+                    <th scope="col"></th>
                 </tr>
             </thead>
             <tbody class="table-striped">
                 <% for(var i = 0; i < students.length; i++) { %>
                 <tr>
-                    <td><%= students[i].firstname %></td>
-                    <td><%= students[i].lastname %></td>
-                    <td><%= students[i].username %></td>
-                    <td><a href="/students/delete/<%= students[i].username %>" class="btn btn-outline-danger btn-sm float-right">Remove</a></td>
+                    <td class="align-middle"><%= students[i].firstname %></td>
+                    <td class="align-middle"><%= students[i].lastname %></td>
+                    <td class="align-middle"><%= students[i].username %></td>
+
+                    <!-- grades link -->
+                    <td class="align-middle">
+                        <a class="btn btn-link" href="/grades/<%= students[i].username %>">See grades</a>
+                    </td>
+
+                    <!-- remove button -->
+                    <td class="align-middle">
+                        <a href="/students/delete/<%= students[i].username %>" class="btn btn-outline-danger btn-sm float-right">Remove</a>
+                    </td>
                 </tr>
                 <% } %>
             </tbody>
         </table>
 
+        <!-- add button -->
         <a class="btn btn-primary float-right mt-5" href="/students/add" role="button">Add student</a>
     </div>
-    
+
     <%- include('partials/script') %>
 </body>
 
