@@ -62,13 +62,15 @@ var gradeRouter = function (caClient, wallet, gateway) {
                 // add grades to course
                 course.grades = [];
                 let average = 0;
+                let weight_sum = 0;
                 for (const grade of grades) {
                     if (grade.Course === courseId) {
                         course.grades.push(grade);
+                        weight_sum = weight_sum + grade.Weight;
                         average = average + grade.Value * grade.Weight;
                     }
                 }
-                course.average = average;
+                course.average = average / weight_sum;
 
                 courses.push(course);
             }
