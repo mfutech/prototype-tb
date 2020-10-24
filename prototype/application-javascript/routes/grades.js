@@ -66,7 +66,7 @@ var gradeRouter = function (caClient, wallet, gateway) {
                 for (const grade of grades) {
                     if (grade.Course === courseId) {
                         course.grades.push(grade);
-                        weight_sum = weight_sum + grade.Weight;
+                        weight_sum = weight_sum + 1 * grade.Weight;
                         average = average + grade.Value * grade.Weight;
                     }
                 }
